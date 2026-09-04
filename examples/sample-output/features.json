@@ -1,0 +1,151 @@
+[
+  {
+    "id": "saved-posters-list",
+    "name": "Saved Poster List",
+    "description": "Visible collection where users browse and manage posters they have saved.",
+    "location_context": "Saved tab within the main application layout",
+    "user_visible_purpose": "Let users quickly find and manage their saved posters.",
+    "user_interactions": [
+      "Open saved tab",
+      "Scroll saved posters",
+      "Open saved poster detail",
+      "Remove saved poster"
+    ],
+    "primary_files": [
+      "src/features/saved-posters/SavedPosterList.tsx",
+      "src/features/saved-posters/useSavedPosters.ts"
+    ],
+    "supporting_files": [
+      "src/components/poster/PosterCard.tsx",
+      "src/systems/poster-sync/PosterSyncEngine.ts"
+    ],
+    "data_dependencies": [
+      "local saved-poster store",
+      "PosterSyncEngine"
+    ],
+    "state_dependencies": [
+      "PosterSyncEngine"
+    ],
+    "related_features": [
+      "poster-detail-availability"
+    ],
+    "aliases": [
+      "saved artwork",
+      "my posters",
+      "poster collection"
+    ],
+    "keywords": [
+      "saved",
+      "poster",
+      "collection"
+    ],
+    "evidence": [
+      {
+        "type": "route",
+        "file": "src/app/router.tsx",
+        "symbol": "savedTabRoute",
+        "description": "Application router maps the saved tab to SavedPosterList."
+      },
+      {
+        "type": "import",
+        "file": "src/features/saved-posters/SavedPosterList.tsx",
+        "symbol": "useSavedPosters",
+        "description": "List consumes sync-aware saved-poster hook."
+      }
+    ],
+    "confidence": "high",
+    "notes": [
+      "User-visible feature; alias mapping improves natural-language lookup for non-technical requests."
+    ]
+  },
+  {
+    "id": "poster-detail-availability",
+    "name": "Poster Detail Availability",
+    "description": "Poster detail view that remains usable when data availability or sync state changes.",
+    "location_context": "Poster detail screen",
+    "user_visible_purpose": "Let users continue viewing or restoring poster details even when availability is uncertain.",
+    "user_interactions": [
+      "Open poster detail",
+      "See loading or degraded state if sync is pending",
+      "Retry availability action"
+    ],
+    "primary_files": [
+      "src/features/poster-detail/PosterDetailView.tsx"
+    ],
+    "supporting_files": [
+      "src/systems/poster-sync/PosterSyncEngine.ts"
+    ],
+    "data_dependencies": [
+      "PosterSyncEngine"
+    ],
+    "state_dependencies": [
+      "PosterSyncEngine"
+    ],
+    "related_features": [
+      "saved-posters-list"
+    ],
+    "aliases": [
+      "poster availability",
+      "missing poster details",
+      "poster reload"
+    ],
+    "keywords": [
+      "poster",
+      "detail",
+      "availability"
+    ],
+    "evidence": [
+      {
+        "type": "manual_observation",
+        "description": "During validation, the most plausible explanation for 'missing items after reload' involved availability logic rather than list UI alone."
+      }
+    ],
+    "confidence": "medium",
+    "notes": [
+      "Confidence is medium because missing-item symptoms can originate from either UI filtering or sync behavior."
+    ]
+  },
+  {
+    "id": "browse-home-feed",
+    "name": "Browse Home Feed",
+    "description": "Scrollable home feed that surfaces featured posters and discovery content.",
+    "location_context": "Home tab",
+    "user_visible_purpose": "Let users discover new or featured posters without leaving the home experience.",
+    "user_interactions": [
+      "Open home tab",
+      "Scroll feed",
+      "Open poster from feed"
+    ],
+    "primary_files": [
+      "src/features/home/HomeFeed.tsx"
+    ],
+    "supporting_files": [
+      "src/components/poster/PosterCard.tsx"
+    ],
+    "data_dependencies": [
+      "GET /api/feed"
+    ],
+    "state_dependencies": [],
+    "related_features": [],
+    "aliases": [
+      "home screen",
+      "homepage feed",
+      "featured posters"
+    ],
+    "keywords": [
+      "home",
+      "feed",
+      "featured"
+    ],
+    "evidence": [
+      {
+        "type": "route",
+        "file": "src/app/router.tsx",
+        "symbol": "homeRoute",
+        "description": "Router exposes the home feed as a top-level tab."
+      }
+    ],
+    "confidence": "high",
+    "notes": []
+  }
+]

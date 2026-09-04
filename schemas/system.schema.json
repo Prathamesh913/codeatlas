@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://codeatlas.org/schemas/system.schema.json",
+  "title": "CodeAtlas System Schema",
+  "description": "Schema defining a cross-cutting architectural system that supports one or more features, flows, or other systems.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "confidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the system (e.g., 'saved-posters-persistence').",
+      "pattern": "^[a-z0-9-_]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the system."
+    },
+    "description": {
+      "type": "string",
+      "description": "Semantic description of what this system provides or enables architecturally."
+    },
+    "technical_role": {
+      "type": "string",
+      "description": "Technical purpose of the system (e.g., 'Manages cached poster metadata and revalidation lifecycle')."
+    },
+    "semantic_role": {
+      "type": "string",
+      "description": "Human-facing purpose of the system (e.g., 'Ensures saved artwork is reliably available offline or across screens)."
+    },
+    "primary_files": {
+      "type": "array",
+      "description": "Core files that implement or own this system.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supporting_files": {
+      "type": "array",
+      "description": "Auxiliary files that help implement this system without owning it.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supported_features": {
+      "type": "array",
+      "description": "Feature IDs that this system directly enables.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-_]+$"
+      }
+    },
+    "related_systems": {
+      "type": "array",
+      "description": "IDs of other systems that interact with or depend on this system.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-_]+$"
+      }
+    },
+    "external_dependencies": {
+      "type": "array",
+      "description": "External libraries, APIs, services, or infrastructure required by this system.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "aliases": {
+      "type": "array",
+      "description": "Natural-language synonyms or common alternative names for this system.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "description": "Core vocabulary tokens describing this system.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "description": "Optional structured provenance supporting this system definition.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Kind of evidence (e.g., 'import', 'route', 'render', 'api_usage', 'manual_observation')."
+          },
+          "file": {
+            "type": "string",
+            "description": "Repository-relative file path referenced by this evidence."
+          },
+          "symbol": {
+            "type": "string",
+            "description": "Relevant exported symbol or identifier, when available."
+          },
+          "lines": {
+            "type": "object",
+            "description": "Optional line range; fields may be omitted if line numbers are unknown or stale.",
+            "properties": {
+              "start": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "end": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable explanation of why this evidence supports the mapping."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "description": "Confidence in the accuracy and completeness of this system definition.",
+      "enum": ["high", "medium", "low", "unknown"]
+    },
+    "notes": {
+      "type": "array",
+      "description": "Observations, caveats, or uncertainties about the system scope.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

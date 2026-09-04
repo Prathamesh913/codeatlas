@@ -1,0 +1,128 @@
+[
+  {
+    "source": "saved-posters-list",
+    "target": "src/features/saved-posters/SavedPosterList.tsx",
+    "relationship_type": "IMPLEMENTED_BY",
+    "description": "Saved Poster List is implemented by the SavedPosterList UI composition.",
+    "confidence": "high"
+  },
+  {
+    "source": "saved-posters-list",
+    "target": "src/features/saved-posters/useSavedPosters.ts",
+    "relationship_type": "USES",
+    "description": "Saved Poster List uses a sync-aware hook to load poster state.",
+    "confidence": "high"
+  },
+  {
+    "source": "saved-posters-list",
+    "target": "poster-persistence-system",
+    "relationship_type": "DEPENDS_ON",
+    "description": "The visible list depends on the persistence system for saved state correctness.",
+    "confidence": "high"
+  },
+  {
+    "source": "saved-posters-list",
+    "target": "browse-saved-posters",
+    "relationship_type": "RELATED_TO",
+    "description": "The saved list feature is explained by the browse-saved-posters flow.",
+    "confidence": "high"
+  },
+  {
+    "source": "poster-detail-availability",
+    "target": "src/features/poster-detail/PosterDetailView.tsx",
+    "relationship_type": "IMPLEMENTED_BY",
+    "description": "Poster detail availability is implemented in PosterDetailView.",
+    "confidence": "medium"
+  },
+  {
+    "source": "poster-detail-availability",
+    "target": "poster-persistence-system",
+    "relationship_type": "DEPENDS_ON",
+    "description": "Poster detail availability depends on the persistence/sync system for reload behavior.",
+    "confidence": "medium"
+  },
+  {
+    "source": "browse-home-feed",
+    "target": "src/features/home/HomeFeed.tsx",
+    "relationship_type": "IMPLEMENTED_BY",
+    "description": "Home feed feature is implemented by HomeFeed.tsx.",
+    "confidence": "high"
+  },
+  {
+    "source": "browse-home-feed",
+    "target": "src/components/poster/PosterCard.tsx",
+    "relationship_type": "USES",
+    "description": "Home feed reuses PosterCard for feed tiles.",
+    "confidence": "high"
+  },
+  {
+    "source": "poster-persistence-system",
+    "target": "src/systems/poster-sync/PosterSyncEngine.ts",
+    "relationship_type": "IMPLEMENTED_BY",
+    "description": "Poster persistence system is primarily implemented by PosterSyncEngine.",
+    "confidence": "high"
+  },
+  {
+    "source": "poster-persistence-system",
+    "target": "src/systems/poster-sync/posterStore.ts",
+    "relationship_type": "USES",
+    "description": "Poster persistence system uses a shared local store.",
+    "confidence": "high"
+  },
+  {
+    "source": "poster-persistence-system",
+    "target": "user-authentication",
+    "relationship_type": "DEPENDS_ON",
+    "description": "Poster persistence often runs within an authenticated session.",
+    "confidence": "medium"
+  },
+  {
+    "source": "src/features/saved-posters/useSavedPosters.ts",
+    "target": "poster-persistence-system",
+    "relationship_type": "SUPPORTS",
+    "description": "Hook supports UI consumption of the persistence system.",
+    "confidence": "high"
+  },
+  {
+    "source": "src/components/poster/PosterCard.tsx",
+    "target": "browse-home-feed",
+    "relationship_type": "SUPPORTS",
+    "description": "Shared PosterCard supports the home feed feature.",
+    "confidence": "high"
+  },
+  {
+    "source": "src/components/poster/PosterCard.tsx",
+    "target": "saved-posters-list",
+    "relationship_type": "SUPPORTS",
+    "description": "Shared PosterCard also supports the saved list feature.",
+    "confidence": "high"
+  },
+  {
+    "source": "src/hooks/useAuth.ts",
+    "target": "user-authentication",
+    "relationship_type": "SUPPORTS",
+    "description": "useAuth hook supports UI access to authentication behavior.",
+    "confidence": "high"
+  },
+  {
+    "source": "src/systems/auth/AuthClient.ts",
+    "target": "user-authentication",
+    "relationship_type": "IMPLEMENTED_BY",
+    "description": "Authentication system is implemented by AuthClient.",
+    "confidence": "high"
+  },
+  {
+    "source": "browse-saved-posters",
+    "target": "poster-persistence-system",
+    "relationship_type": "DEPENDS_ON",
+    "description": "Flow correctness depends on the persistence system.",
+    "confidence": "high"
+  },
+  {
+    "source": "browse-saved-posters",
+    "target": "user-authentication",
+    "relationship_type": "DEPENDS_ON",
+    "description": "Flow often occurs in an authenticated context.",
+    "confidence": "medium"
+  }
+]

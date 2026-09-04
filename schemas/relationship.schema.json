@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://codeatlas.org/schemas/relationship.schema.json",
+  "title": "CodeAtlas Relationship Schema",
+  "description": "Schema defining a directed connection or relationship between two entities in the codebase map.",
+  "type": "object",
+  "required": [
+    "source",
+    "target",
+    "relationship_type",
+    "confidence"
+  ],
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The ID or file path of the source entity."
+    },
+    "target": {
+      "type": "string",
+      "description": "The ID or file path of the target entity."
+    },
+    "relationship_type": {
+      "type": "string",
+      "description": "The semantic category of the relationship.",
+      "enum": [
+        "CONTAINS",
+        "IMPLEMENTED_BY",
+        "USES",
+        "SUPPORTS",
+        "PROVIDES_DATA_TO",
+        "MANAGES_STATE_FOR",
+        "NAVIGATES_TO",
+        "TRIGGERS",
+        "DEPENDS_ON",
+        "RELATED_TO"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of how or why these two nodes connect."
+    },
+    "confidence": {
+      "type": "string",
+      "description": "How certain we are that this connection is correct and complete.",
+      "enum": ["high", "medium", "low", "unknown"]
+    }
+  },
+  "additionalProperties": true
+}

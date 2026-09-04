@@ -1,0 +1,29 @@
+# Phase 4A validation inputs/outputs (regenerated on demand)
+tests/evidence-cache/
+tests/**/structural/
+
+# Node
+node_modules/
+
+# Package artifacts
+*.tgz
+*.tar.gz
+.npm/
+
+# Generated CodeAtlas output (belongs to analyzed repos, never to this repo)
+.codeatlas/
+
+# Logs and local-only files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Temporary deterministic-run and install-test directories
+/tmp/
+tmp/
+.opencode/

@@ -1,0 +1,20 @@
+{
+  "name": "codeatlas",
+  "version": "0.3.0",
+  "description": "Agent-first semantic codebase navigation system",
+  "type": "module",
+  "scripts": {
+    "collect": "node src/collect.js",
+    "phase4a": "node src/structural/cli.js",
+    "test": "node --test tests/unit/*.test.js tests/fixtures/*.test.js tests/structural/*.test.js tests/investigate/*.test.js tests/semantic/*.test.js tests/consolidation/*.test.js tests/canonical/*.test.js tests/projection/*.test.js",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:fixtures": "node --test tests/fixtures/*.test.js",
+    "test:structural": "node --test tests/structural/*.test.js",
+    "test:investigate": "node --test tests/investigate/*.test.js",
+    "test:semantic": "node --test tests/semantic/*.test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "TBD"
+}

@@ -1,0 +1,97 @@
+[
+  {
+    "id": "poster-persistence-system",
+    "name": "Poster Persistence System",
+    "description": "Cross-cutting system that stores, retrieves, and reconciles saved poster state across reloads and devices.",
+    "technical_role": "Manages local persistence, cache rehydration, and sync reconciliation for saved poster metadata.",
+    "semantic_role": "Keeps saved artwork reliably available when the user expects it.",
+    "primary_files": [
+      "src/systems/poster-sync/PosterSyncEngine.ts",
+      "src/systems/poster-sync/posterStore.ts"
+    ],
+    "supporting_files": [
+      "src/features/saved-posters/useSavedPosters.ts"
+    ],
+    "supported_features": [
+      "saved-posters-list",
+      "poster-detail-availability"
+    ],
+    "related_systems": [
+      "user-authentication"
+    ],
+    "external_dependencies": [
+      "local persistence",
+      "sync queue"
+    ],
+    "aliases": [
+      "offline caching",
+      "saved poster cache",
+      "synced persistence"
+    ],
+    "keywords": [
+      "saved",
+      "poster",
+      "cache",
+      "sync"
+    ],
+    "evidence": [
+      {
+        "type": "import",
+        "file": "src/features/saved-posters/SavedPosterList.tsx",
+        "symbol": "useSavedPosters",
+        "description": "List UI depends on the sync-aware hook owned by this system."
+      },
+      {
+        "type": "manual_observation",
+        "description": "Multiple features rely on the same persistence and rehydration logic, justifying a system boundary."
+      }
+    ],
+    "confidence": "high",
+    "notes": [
+      "This system was added in Phase 2C because a shared capability explains behavior across features better than component-level file grouping."
+    ]
+  },
+  {
+    "id": "user-authentication",
+    "name": "User Authentication",
+    "description": "Cross-cutting system for login, session handling, and authenticated requests.",
+    "technical_role": "Manages credentials, token refresh, and authenticated API transport.",
+    "semantic_role": "Lets recognized users access personalized content reliably.",
+    "primary_files": [
+      "src/systems/auth/AuthClient.ts",
+      "src/store/authStore.ts"
+    ],
+    "supporting_files": [
+      "src/hooks/useAuth.ts"
+    ],
+    "supported_features": [
+      "saved-posters-list"
+    ],
+    "related_systems": [
+      "poster-persistence-system"
+    ],
+    "external_dependencies": [
+      "auth provider",
+      "refresh endpoint"
+    ],
+    "aliases": [
+      "login system",
+      "session management"
+    ],
+    "keywords": [
+      "auth",
+      "session",
+      "login"
+    ],
+    "evidence": [
+      {
+        "type": "api_usage",
+        "file": "src/systems/auth/AuthClient.ts",
+        "symbol": "refreshSession",
+        "description": "Poster persistence often runs within an authenticated context."
+      }
+    ],
+    "confidence": "high",
+    "notes": []
+  }
+]

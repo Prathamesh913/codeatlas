@@ -1,0 +1,126 @@
+[
+  {
+    "id": "browse-saved-posters",
+    "name": "Browse Saved Posters",
+    "description": "The sequence that delivers the user-visible saved poster collection after the user opens the saved tab.",
+    "trigger": "User taps Saved tab",
+    "steps": [
+      {
+        "order": 1,
+        "description": "UI requests the saved poster collection view.",
+        "file": "src/features/saved-posters/SavedPosterList.tsx",
+        "feature": "saved-posters-list",
+        "action": "render",
+        "preconditions": [
+          "User has authenticated in this session"
+        ],
+        "outcomes": [
+          "Saved screen becomes the active composition"
+        ],
+        "branches": [],
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/app/router.tsx",
+            "symbol": "savedTabRoute",
+            "description": "Router maps the saved tab to SavedPosterList."
+          }
+        ]
+      },
+      {
+        "order": 2,
+        "description": "Hook requests data from the persistence/sync layer.",
+        "file": "src/features/saved-posters/useSavedPosters.ts",
+        "feature": "saved-posters-list",
+        "action": "api_call",
+        "preconditions": [
+          "SavedPosterList is mounted"
+        ],
+        "outcomes": [
+          "Sync-aware state is requested"
+        ],
+        "branches": [],
+        "evidence": [
+          {
+            "type": "import",
+            "file": "src/features/saved-posters/SavedPosterList.tsx",
+            "symbol": "useSavedPosters",
+            "description": "List depends on sync-aware hook."
+          }
+        ]
+      },
+      {
+        "order": 3,
+        "description": "PosterSyncEngine reconciles local persistence with known truth.",
+        "file": "src/systems/poster-sync/PosterSyncEngine.ts",
+        "feature": "poster-persistence-system",
+        "action": "state_update",
+        "preconditions": [
+          "Authenticated session is available"
+        ],
+        "outcomes": [
+          "Local poster state is rehydrated"
+        ],
+        "branches": [
+          {
+            "label": "sync_failed",
+            "description": "Engine cannot reconcile persisted state with current truth.",
+            "next_step_order": 4
+          },
+          {
+            "label": "stale_state",
+            "description": "Local state is present but possibly outdated."
+          }
+        ],
+        "evidence": [
+          {
+            "type": "manual_observation",
+            "file": "src/systems/poster-sync/PosterSyncEngine.ts",
+            "description": "Rehydration logic is shared across saved-posters and detail availability screens."
+          }
+        ]
+      },
+      {
+        "order": 4,
+        "description": "UI renders the saved collection from the reconciled state.",
+        "file": "src/features/saved-posters/SavedPosterList.tsx",
+        "feature": "saved-posters-list",
+        "action": "render",
+        "preconditions": [
+          "Reconciled state is available"
+        ],
+        "outcomes": [
+          "Full collection rendered when state is fresh",
+          "Degraded collection rendered when state is stale or incomplete"
+        ],
+        "branches": [],
+        "evidence": [
+          {
+            "type": "import",
+            "file": "src/features/saved-posters/SavedPosterList.tsx",
+            "symbol": "PosterCard",
+            "description": "Rendered collection relies on shared PosterCard tiles."
+          }
+        ]
+      }
+    ],
+    "involved_features": [
+      "saved-posters-list",
+      "poster-detail-availability"
+    ],
+    "involved_systems": [
+      "poster-persistence-system",
+      "user-authentication"
+    ],
+    "involved_files": [
+      "src/features/saved-posters/SavedPosterList.tsx",
+      "src/features/saved-posters/useSavedPosters.ts",
+      "src/systems/poster-sync/PosterSyncEngine.ts"
+    ],
+    "external_systems": [],
+    "confidence": "high",
+    "notes": [
+      "This flow illustrates why user-visible symptoms may depend more on a shared system than on the visible UI file alone."
+    ]
+  }
+]

@@ -1,0 +1,149 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://codeatlas.org/schemas/feature.schema.json",
+  "title": "CodeAtlas Feature Schema",
+  "description": "Schema defining a semantic, user-visible feature within the codebase.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "user_visible_purpose",
+    "user_interactions",
+    "primary_files",
+    "confidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the feature (e.g., 'featured-projects-carousel').",
+      "pattern": "^[a-z0-9-_]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the feature."
+    },
+    "description": {
+      "type": "string",
+      "description": "A semantic, user-centric description of what the feature does."
+    },
+    "location_context": {
+      "type": "string",
+      "description": "Where the user encounters this feature (e.g., 'Homepage top section', 'Global Navigation Header')."
+    },
+    "user_visible_purpose": {
+      "type": "string",
+      "description": "The value or goal this feature provides to the end-user."
+    },
+    "user_interactions": {
+      "type": "array",
+      "description": "Specific actions the user can take on or with this feature.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "primary_files": {
+      "type": "array",
+      "description": "Key files that implement the primary logic or UI for this feature.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supporting_files": {
+      "type": "array",
+      "description": "Related files that provide components, helpers, or hooks to this feature.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "data_dependencies": {
+      "type": "array",
+      "description": "Data models, APIs, endpoints, or query structures this feature relies on.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "state_dependencies": {
+      "type": "array",
+      "description": "Stores, contexts, or local state controllers governing this feature's state.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "related_features": {
+      "type": "array",
+      "description": "IDs of other semantically related features in the codebase.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-_]+$"
+      }
+    },
+    "aliases": {
+      "type": "array",
+      "description": "Natural-language synonyms or user-facing terms that should resolve to this feature during lookup (e.g., 'saved artwork', 'my posters').",
+      "items": {
+        "type": "string"
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "description": "Core vocabulary tokens that describe the feature concept (e.g., 'saved', 'poster', 'collection').",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "description": "Optional structured provenance supporting this feature mapping.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Kind of evidence (e.g., 'import', 'route', 'render', 'api_usage', 'manual_observation')."
+          },
+          "file": {
+            "type": "string",
+            "description": "Repository-relative file path referenced by this evidence."
+          },
+          "symbol": {
+            "type": "string",
+            "description": "Relevant exported symbol or identifier, when available."
+          },
+          "lines": {
+            "type": "object",
+            "description": "Optional line range; fields may be omitted if line numbers are unknown or stale.",
+            "properties": {
+              "start": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "end": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable explanation of why this evidence supports the mapping."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "description": "The semantic mapping accuracy confidence level.",
+      "enum": ["high", "medium", "low", "unknown"]
+    },
+    "notes": {
+      "type": "array",
+      "description": "Developer or agent observations, caveats, or implementation queries.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

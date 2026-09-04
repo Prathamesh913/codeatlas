@@ -1,0 +1,175 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://codeatlas.org/schemas/flow.schema.json",
+  "title": "CodeAtlas Flow Schema",
+  "description": "Schema defining a user interaction flow — a sequence of steps triggered by a user action.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "trigger",
+    "steps",
+    "confidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the flow (e.g., 'user-login').",
+      "pattern": "^[a-z0-9-_]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the flow."
+    },
+    "description": {
+      "type": "string",
+      "description": "Semantic description of what the flow accomplishes from the user's perspective."
+    },
+    "trigger": {
+      "type": "string",
+      "description": "User action or event that initiates the flow (e.g., 'User clicks Login button')."
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered sequence of steps in the flow. Each step has a human description and optional structured references.",
+      "items": {
+        "type": "object",
+        "required": ["order", "description"],
+        "properties": {
+          "order": {
+            "type": "integer",
+            "description": "1-based sequence number of the step.",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of what happens in this step."
+          },
+          "file": {
+            "type": "string",
+            "description": "Primary file responsible for this step, if applicable."
+          },
+          "feature": {
+            "type": "string",
+            "description": "Feature ID involved in this step, if applicable.",
+            "pattern": "^[a-z0-9-_]+$"
+          },
+          "action": {
+            "type": "string",
+            "description": "Structured action type (e.g., 'validate', 'api_call', 'state_update', 'navigate', 'render', 'external_call')."
+          },
+          "preconditions": {
+            "type": "array",
+            "description": "Optional states or inputs that must be true before this step proceeds.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "outcomes": {
+            "type": "array",
+            "description": "Optional explicit states, side-effects, or results produced by this step.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "branches": {
+            "type": "array",
+            "description": "Optional decision points, degraded paths, or error paths originating at this step.",
+            "items": {
+              "type": "object",
+              "required": ["label", "description"],
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "description": "Short identifier for the branch (e.g., 'validation_error', 'expired_token', 'rate_limited')."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Human-readable explanation of when this branch is taken."
+                },
+                "next_step_order": {
+                  "type": "integer",
+                  "description": "Optional jump target for explicit branching within the same flow.",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "description": "Optional provenance supporting this step mapping.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "file": {
+                  "type": "string"
+                },
+                "symbol": {
+                  "type": "string"
+                },
+                "lines": {
+                  "type": "object",
+                  "properties": {
+                    "start": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "end": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                },
+                "description": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "involved_features": {
+      "type": "array",
+      "description": "Feature IDs that participate in this flow.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-_]+$"
+      }
+    },
+    "involved_files": {
+      "type": "array",
+      "description": "File paths that participate in this flow.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "external_systems": {
+      "type": "array",
+      "description": "External services, APIs, or systems contacted during this flow.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "description": "Confidence in the accuracy and completeness of this flow mapping.",
+      "enum": ["high", "medium", "low", "unknown"]
+    },
+    "notes": {
+      "type": "array",
+      "description": "Observations, caveats, or uncertainties about the flow.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}
