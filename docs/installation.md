@@ -20,7 +20,7 @@ CodeAtlas is **not published on npm**. `npm install codeatlas` and `npx codeatla
 ## 1. Installation from a local checkout
 
 ```bash
-git clone <repository-url> codeatlas   # replace with the actual clone URL
+git clone https://github.com/Prathamesh913/codeatlas.git codeatlas
 cd codeatlas
 node --version                          # must be >= 18
 ```

@@ -7,7 +7,7 @@ happens next.
 
 ## Why the private beta exists
 
-The semantic core is validated (two real repositories, 284-test suite, deterministic
+The semantic core is validated (two real repositories, 287-test suite, deterministic
 reruns) — but *validated* is not the same as *useful everywhere*. The private beta
 exists to learn, before any public release:
 

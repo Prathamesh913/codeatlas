@@ -7,6 +7,13 @@
     "codeatlas": "bin/codeatlas.js"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prathamesh913/codeatlas.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Prathamesh913/codeatlas/issues"
+  },
   "keywords": [
     "codebase-intelligence",
     "semantic-navigation",

@@ -145,8 +145,8 @@ Artifact meanings:
 ## Current maturity
 
 **Private beta / experimental.** The semantic core is validated on two real
-repositories — **ProjectDock** and **CinePrint** — with a 284-test regression suite
-(73 suites, 0 failures), deterministic reruns, and read-only guarantees. Validation on
+repositories — **ProjectDock** and **CinePrint** — with a 287-test regression suite
+(74 suites, 0 failures), deterministic reruns, and read-only guarantees. Validation on
 *unfamiliar* repositories is still needed; a public release is not claimed. Public
 release additionally requires license confirmation (see [License](#license)).
 
@@ -158,7 +158,8 @@ Requirements: Node.js ≥ 18. Zero runtime dependencies.
 > yet** — the package is not on the registry. Install from a checkout or tarball:
 
 ```bash
-# from a checkout of this repository:
+git clone https://github.com/Prathamesh913/codeatlas.git
+cd codeatlas
 node bin/codeatlas.js ./my-app --output ./map-output
 
 # or from the package tarball (see docs/installation.md):

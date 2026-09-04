@@ -262,6 +262,26 @@ describe('docs — examples consistency', () => {
   });
 });
 
+describe('docs — canonical repository URL consistency', () => {
+  const pkg = JSON.parse(read('package.json'));
+  const CANON = 'github.com/Prathamesh913/codeatlas';
+  const CANON_RE = new RegExp(CANON.replace('.', '\\.'));
+  it('package metadata uses the canonical repository URL', () => {
+    assert.match(pkg.repository.url, CANON_RE, 'repository.url is the real GitHub repository');
+    assert.match(pkg.bugs.url, CANON_RE, 'bugs.url points at the real issues page');
+  });
+  it('README, CONTRIBUTING, and installation docs use the same canonical URL', () => {
+    for (const file of ['README.md', 'CONTRIBUTING.md', 'docs/installation.md']) {
+      assert.ok(read(file).includes(CANON), `${file} references the canonical repository URL`);
+    }
+  });
+  it('no stale clone placeholders remain', () => {
+    for (const file of ['README.md', 'CONTRIBUTING.md', 'docs/installation.md']) {
+      assert.ok(!/<repository-url>/.test(read(file)), `${file} has no clone placeholder`);
+    }
+  });
+});
+
 describe('docs — package metadata agreement', () => {
   const pkg = JSON.parse(read('package.json'));
   it('version is a 0.5.x beta version', () => {

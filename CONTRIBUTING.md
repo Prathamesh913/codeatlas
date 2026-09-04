@@ -40,7 +40,7 @@ See [README.md](README.md), [SKILL.md](SKILL.md), and
 ## Development environment
 
 ```bash
-git clone <repository-url> && cd codeatlas
+git clone https://github.com/Prathamesh913/codeatlas.git && cd codeatlas
 node --version      # must be >= 18
 npm test            # full suite; zero dependencies — no npm install needed
 ```

@@ -20,8 +20,10 @@ Documentation and repository preparation (this phase, unreleased):
   private-beta kit, contributing/security/conduct/changelog files, issue + PR
   templates, offline CI.
 - Documentation tests extended 21 → 80 (repository file checks, link resolution,
-  npm-availability honesty, template sanity); suite now 284 tests / 73 suites.
+  npm-availability honesty, template sanity); suite now 287 tests / 74 suites.
 - Decisions D-031 (GitHub documentation set), D-032 (CI).
+- Real repository URL added: `package.json` `repository`/`bugs` metadata,
+  clone commands in README/CONTRIBUTING/installation.
 
 ## 0.5.0 — 2026-09-04### Added
 
@@ -70,8 +72,6 @@ Documentation and repository preparation (this phase, unreleased):
 - **Not published on npm** — `npm install codeatlas` / `npx codeatlas` do not
   work; install from a checkout or tarball
   ([docs/installation.md](docs/installation.md)).
-- No `repository` registry metadata yet (deliberately omitted until a real URL
-  exists).
 - `flows.json` is not generated (behavioral call-chain evidence is not extracted).
 - Language coverage: strongest on JavaScript/TypeScript and Python; maps on other
   repositories can be sparse or empty.
