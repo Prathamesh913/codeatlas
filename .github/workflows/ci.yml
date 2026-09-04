@@ -51,9 +51,12 @@ jobs:
           rm -rf /tmp/atlas-ci && cp -r tests/fixtures/smoke-react-app /tmp/atlas-ci
           node bin/codeatlas.js /tmp/atlas-ci --output /tmp/atlas-ci-map > /tmp/smoke.txt
           grep -q "codeatlas: done" /tmp/smoke.txt
-          # determinism: a rerun produces byte-identical canonical artifacts
+          # determinism: a rerun produces byte-identical canonical artifacts.
+          # canonical-report.json is excluded: across different output directories
+          # it embeds the input path (evidenceDir) — the only provenance line that
+          # differs; all other artifacts must be byte-identical.
           node bin/codeatlas.js /tmp/atlas-ci --output /tmp/atlas-ci-map2 > /dev/null
-          diff -r /tmp/atlas-ci-map/canonical /tmp/atlas-ci-map2/canonical
+          diff -r --exclude=canonical-report.json /tmp/atlas-ci-map/canonical /tmp/atlas-ci-map2/canonical
           # source safety: the analyzed fixture copy carries no .codeatlas (custom --output used)
           test ! -e /tmp/atlas-ci/.codeatlas
           rm -rf /tmp/atlas-ci /tmp/atlas-ci-map /tmp/atlas-ci-map2 /tmp/smoke.txt
