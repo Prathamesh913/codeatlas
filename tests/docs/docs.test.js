@@ -282,6 +282,42 @@ describe('docs — canonical repository URL consistency', () => {
   });
 });
 
+describe('docs — test-script discovery validity (CI regression guard)', () => {
+  const pkg = JSON.parse(read('package.json'));
+  // CI failure on 315811d: an unmatched `tests/<dir>/*.test.js` glob made Node's
+  // test runner exit 1 ("Could not find ..."). Guard: every glob in the `test`
+  // script must match at least one test file, and every test file on disk under
+  // a tests/<category> directory must be referenced by the script.
+  it('every tests/<dir>/*.test.js glob in the test script matches real test files', () => {
+    const globs = pkg.scripts.test.match(/tests\/[\w-]+\/\*\.test\.js/g) || [];
+    assert.ok(globs.length >= 9, `all category globs present (found ${globs.length})`);
+    for (const g of globs) {
+      const dir = join(ROOT, g.replace('/*.test.js', ''));
+      assert.ok(existsSync(dir), `${g} directory exists`);
+      const files = readdirSync(dir).filter((f) => f.endsWith('.test.js'));
+      assert.ok(files.length > 0, `${g} matches at least one test file`);
+    }
+  });
+  it('no test file on disk is left unreferenced (no silently skipped category)', () => {
+    const globs = new Set(pkg.scripts.test.match(/tests\/[\w-]+\/\*\.test\.js/g) || []);
+    const dirs = readdirSync(join(ROOT, 'tests'), { withFileTypes: true })
+      .filter((e) => e.isDirectory() && e.name !== 'evidence-cache')
+      .map((e) => `tests/${e.name}`);
+    for (const d of dirs) {
+      const entries = readdirSync(join(ROOT, d));
+      if (entries.some((f) => f.endsWith('.test.js'))) {
+        assert.ok(globs.has(`${d}/*.test.js`), `${d}/*.test.js must be referenced by the test script`);
+      }
+    }
+  });
+  it('.gitignore never ignores the structural test suite or its fixtures again', () => {
+    const gitignore = read('.gitignore');
+    assert.ok(!/^tests\/\*\*\/structural\//m.test(gitignore), 'tests/**/structural/ must not return (it ignored the test suite and fixtures)');
+    assert.ok(existsSync(join(ROOT, 'tests', 'structural', 'structural.test.js')), 'structural test file present');
+    assert.ok(existsSync(join(ROOT, 'tests', 'fixtures', 'structural')), 'structural fixtures present');
+  });
+});
+
 describe('docs — package metadata agreement', () => {
   const pkg = JSON.parse(read('package.json'));
   it('version is a 0.5.x beta version', () => {
