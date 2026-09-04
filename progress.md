@@ -12,361 +12,29 @@ CodeAtlas is an agent-first codebase intelligence and semantic navigation system
 
 ## Architecture Decisions
 
-### D-001 — Semantic Model Before Scanner
-**Status**: Accepted
-
-**Decision**:
-Define the feature, file, relationship, and flow models and schemas before building automated scanning tools.
-
-**Reason**:
-The hardest problem in codebase navigation is how to accurately represent and connect user concepts to source code, rather than simply listing files. Defining the contract first ensures future scanner implementations produce predictable, highly useful maps.
-
-**Consequences**:
-All future components (scanners, agents, CLI query tools, synchronization logic) must conform to and consume these schemas.
-
-### D-002 — Decentralized, Flat-File JSON Storage
-**Status**: Accepted
-
-**Decision**:
-Store CodeAtlas data in a dedicated directory `.codeatlas/` using separate structured JSON files (`features.json`, `files.json`, `relationships.json`, `flows.json`) alongside rendered human-readable Markdown documentation.
-
-**Reason**:
-Splitting the data into separate documents by entity type prevents massive single-file merges, allows easy git diff tracking, and allows targeted read/write operations by AI agents or scanner tools.
-
-**Consequences**:
-Enables incremental updates during sync tasks and allows agents to read only the slices they need without wasting token context.
-
-### D-003 — Confidence as Enum, Not Numeric Score
-**Status**: Accepted
-
-**Decision**:
-Use `confidence: high | medium | low | unknown` (string enum) for all entities and relationships instead of a 0–100 numeric score.
-
-**Reason**:
-Numeric precision implies false certainty for semantic inferences. An enum forces explicit bucketing and keeps notes as the place for nuance.
-
-**Consequences**:
-Schemas enforce enum; agents must map their uncertainty into four levels and explain via `notes`.
-
-### D-004 — Centralized Relationships + Inline References (Dual Navigation)
-**Status**: Accepted
-
-**Decision**:
-Store canonical edges in `relationships.json` (graph-friendly, one entry per directed edge) while also allowing `features[].primary_files/supporting_files` and `files[].features` to inline the most useful links for local navigation.
-
-**Reason**:
-Pure graph requires traversal for every lookup; pure inline duplication causes drift. Dual storage gives fast local reads (agent can check a file's `features` without loading the graph) and complete graph queries via `relationships.json`.
-
-**Consequences**:
-`sync` must keep both representations consistent; validation must cross-check them.
-
-### D-005 — Generic, Language-Agnostic Schemas with Extensibility
-**Status**: Accepted
-
-**Decision**:
-Keep `file.type` as a free-form string, `relationship_type` as a constrained enum that is expected to grow, and allow `additionalProperties: true` on all schemas.
-
-**Reason**:
-Locking to React/TS or to a fixed type taxonomy would require schema redesign for new stacks. Extensibility avoids breaking changes.
-
-**Consequences**:
-Validation ensures required fields but tolerates new metadata; future relationship types can be added without migration.
-
-### D-006 — Templates as Generation Contracts, Not Hand-Written Docs
-**Status**: Accepted
-
-**Decision**:
-Provide `templates/*.template.md` (Handlebars-style placeholders) that define how JSON becomes Markdown. The canonical truth stays JSON; Markdown is always regeneratable.
-
-**Reason**:
-Prevents drift between machine and human views and makes `.codeatlas/*.md` reproducible from CI.
-
-**Consequences**:
-Sample outputs in `examples/sample-output/*.md` are rendered examples of that contract, not manually authored docs.
-
-### D-007 — Systems Are a First-Class Entity
-**Status**: Accepted
-
-**Decision**:
-Add `systems.json` / `system.schema.json` to represent cross-cutting architectural capabilities separately from user-visible features.
-
-**Reason**:
-Phase 2 validation showed that some important concepts are neither user-visible features nor individual files. Auth, persistence, and sync repeatedly supported multiple features and needed their own semantic boundary.
-
-**Consequences**:
-`SKILL.md`, templates, examples, and relationship conventions now include systems. Existing feature/file/relationship/flow data remains valid without systems.
-
-### D-008 — Optional Aliases, Keywords, and Evidence
-**Status**: Accepted
-
-**Decision**:
-Add optional `aliases`, `keywords`, and inline `evidence` structures to the semantic model.
-
-**Reason**:
-Both validation runs showed natural-language mismatches and missing provenance. The model needed structured support for lookup vocabulary and explanation without forcing exhaustive metadata on every entry.
-
-**Consequences**:
-Lookup can now use aliases/keywords; relationships and classifications can include lightweight provenance; backward compatibility is preserved because the new fields remain optional.
-
-### D-009 — Phase 4A Normalizes, Does Not Re-Collect
-**Status**: Accepted
-
-**Decision**:
-Phase 4A builds the implementation graph by *normalizing* Phase 3 evidence (resolving internal module imports against the file inventory, filtering generated/build artifacts, deriving REFERENCES from imported-vs-declared symbols). It does **not** modify the Phase 3 collector.
-
-**Reason**:
-Phase 3 left internal Python module imports (`projectdock.cli`) unresolved and collected some build artifacts (`.vercel/output`). These are normalization concerns squarely within "Evidence Normalization + Structural Analysis," and fixing them in Phase 4A keeps the observation layer clean and the boundary explicit.
-
-**Consequences**:
-ProjectDock gains 89 resolved internal edges (0 → 24-file core cluster); CinePrint drops ~145 spurious `.vercel` nodes. Raw Phase 3 evidence remains read-only. The same fixes are recommended as a *future* Phase 3 enhancement (self-contained evidence) but are not required for Phase 4A.
-
-### D-010 — Structural Unit = Connected Component (Neutral Term)
-**Status**: Accepted
-
-**Decision**:
-A "Structural Unit" is one connected component of the file implementation graph, annotated with hubs/bridges/cycles/orphans. The term is deliberately neutral; it never names a Feature or System.
-
-**Reason**:
-Phase 4A must structure without interpreting. Connected components are deterministic, traceable to IMPORTS/REFERENCES edges, and cover the allowed shapes (connected group, hub+neighbors, entry-reachable subgraph, repeated cluster) without inventing semantics.
-
-**Consequences**:
-`units.json` carries only structural metadata + a structural `reason` string. Semantic naming (e.g. correcting `lib/notion.ts`) remains Phase 4B's job.
-
-### D-013 — Consolidation Is a Distinct Stage Between Carving and Canonical Resolution
-**Status**: Accepted (design; implementation pending 4C)
-
-**Decision**: Add an explicit consolidation stage that consumes Semantic Regions plus evidence
-annotations and emits merge groups, non-merge decisions, and separations — each with typed,
-strong/medium/weak evidence and mandatory anti-merge checks. Canonical resolution then classifies
-consolidated groups (Feature vs System), names them, and describes them.
-
-**Reason**: 4B.2 measured both failure directions: fragmentation (authentication → 4 entities,
-browsing → 4, poster-data → 3) that carving cannot repair (no union pass; infra carve blocks
-re-attachment), and conflation (feature-context, feature-service, system-pid) that only
-anti-merge evidence can veto. Mixing either into carving would reopen a frozen validated stage
-and blur evidence-affinity (D-012) with shared-responsibility reasoning.
-
-**Consequences**: `consolidations.json` becomes a pipeline artifact; merging without recorded
-merge evidence is forbidden; separation (e.g. artist-hero out of feature-artist) is a first-class
-outcome; region identity remains provenance.
-
-### D-014 — Semantic Evidence Has Explicit Reliability Tiers
-**Status**: Accepted (design)
-
-**Decision**: Tier 1 observed behavior/responsibility > Tier 2 user interactions/explicit UI
-actions > Tier 3 state/data ownership + domain symbol families > Tier 4 structural context >
-Tier 5 filenames/paths. Higher tiers outvote lower tiers for identity and naming; lower tiers may
-seed only provisional identities requiring corroboration.
-
-**Reason**: notion.ts succeeded because behavior (T1) implicitly outvoted the filename (T5) via an
-ad-hoc guard; feature-score, feature-found, and system-artist failed because T3 symbols or
-unclassified T2 text outvoted better evidence. Explicit tiers make identity and naming testable
-(R9, R10) instead of exceptional.
-
-**Consequences**: naming source priority follows the tiers; provisional regions need corroboration
-to become canonical; tier provenance is recorded per claim.
-
-### D-015 — Entity Identification and Entity Naming Are Separate
-**Status**: Accepted (design)
-
-**Decision**: A region/fragment/merge-group identity (with provenance) is stable; the canonical
-name is a derived, revisable function over the identity's evidence, using a fixed source priority
-(user-facing actions > route/context names > domain vocabulary > behavior/symbols > filenames)
-with discriminative guards. Rejected candidates are recorded (`naming_evidence.rejected[]`),
-extending the existing `naming_conflict` rather than adding new name fields.
-
-**Reason**: feature-score had a correct boundary and an unusable name; feature-found had both
-wrong — distinct failure classes requiring distinct fixes. The 4B.2 naming guard fixed notion.ts
-but leaked seed terms through `technical_role` (projection), showing naming was not a first-class,
-single-authority step.
-
-**Consequences**: renames never redefine boundaries; symbol vocabulary survives as aliases/
-keywords; naming is unit-testable (R9–R11).
-
-### D-016 — Raw UI Text Requires Classification Before Entity Seeding
-**Status**: Accepted (design)
-
-**Decision**: UI strings are classified once, in the evidence-annotation layer, as capability /
-context / state / incidental signals. Capability signals may seed identities and names; context
-signals contribute names/aliases only; state signals (empty states, errors, loading, retry)
-never seed and only support existing hypotheses; incidental content carries zero semantic weight.
-
-**Reason**: 4B.2's most damaging false positives were unclassified strings ("No posters found" →
-feature-found; "cineprint manifesto" → feature-artist-2; "bebas neue" as alias; automation
-literals inflating feature scores). The same signal was even treated inconsistently within one
-stage (naming guard excluded low-confidence literals; scoring counted them).
-
-**Consequences**: carve/resolve/consolidation consume classes and must not re-read raw UI text
-for scoring; genuine UI-only features (login, submit) must remain capability-class (R2–R4 guard).
-
-### D-017 — Observation Scope and Semantic Relevance Are Separate
-**Status**: Accepted (design)
-
-**Decision**: Phase 3 keeps observing everything (with mechanical relevance *flags* for tests/
-automation/generated paths); a semantic relevance *classification* (application_source / test /
-automation / generated / docs) then governs what may seed, join, or be inspected — test and
-automation files may connect the structural graph but cannot be primary seed files for canonical
-entities, and their string literals are incidental-class.
-
-**Reason**: co-located `*.test.ts` files became region primary members and `automation/`/`scripts/`
-code became 7 canonical Systems in 4B.2; yet tests are structurally load-bearing (ProjectDock's
-core unit is test-glued), and raw evidence inspectability (D-002) forbids deletion.
-
-**Consequences**: relevance reclassification (e.g. a `scripts/` file directly imported by routes)
-must itself be evidence-recorded; filtering happens at consumption, never by destroying evidence.
-
-### D-018 — Inspection Optimizes Decision Information, Not File Importance
-**Status**: Accepted (design)
-
-**Decision**: Source reads are allocated by value-of-information: enumerate open resolution
-questions, type the missing evidence each needs, rank unread files by likelihood of carrying that
-evidence, and read only while a question is open and viable candidates exist (budgets unchanged:
-≤3/region, ≤60/repo). Files that structurally cannot carry the missing evidence type are excluded
-without reading. Selection solely by graph importance (hubs/degree/coverage) is retired.
-
-**Reason**: CinePrint's 81.4% inspection decomposes into 52.6% singleton fallback reads (89% →
-insufficient_evidence), 9.1% reads into automation noise, and 5.1% reads that could not change
-any outcome (wrong evidence type); only ~7% of all reads directly informed canonical entities.
-4B.1/4B.2 selection ranked file importance, never decision value.
-
-**Consequences**: read logs gain a predicted_value field; determinism and provenance are
-preserved; reads remain question-logged (R12).
-
-### D-019 — Consolidation Consumes the Annotation Layer as Its Evidence Authority
-**Status**: Accepted (implemented 4C.2)
-
-**Decision**: The consolidation stage is the single merge authority and consumes the annotation
-layer (`annotation/files.json` relevance classes + `annotation/strings.json` string classes,
-with the collector's mechanical flags verbatim) for every decision: anchor eligibility (D0),
-seed legality (D1/D3), duplicate identity (D2), merge signals (S1/S1b/S3/S5), separation
-bridges, and merge naming. No consolidation rule may re-read raw UI text for scoring or
-classification.
-
-**Reason**: The 4C.1 checkpoint proved annotation is correct but consumed by nothing — every
-measured CP false positive persisted. Centralizing consumption in one stage (a) makes the
-decision flip testable by mutating one annotation field, (b) prevents the B6-class
-guard-vs-scoring divergence inside consolidation, and (c) keeps 4B.2 frozen.
-
-**Consequences**: every consolidation decision cites annotation evidence; output entities carry
-`annotation_summary`; reclassification of one string demonstrably changes consolidation
-outcomes (tested).
-
-### D-020 — Consolidation Outputs Are Decision-Complete and Demotion Never Deletes
-**Status**: Accepted (implemented 4C.2)
-
-**Decision**: `consolidations.json` records merges (with typed evidence), non-merges (with
-veto class), separations, non-splits (with the bridging evidence), demotions (with the exact
-misleading strings), ambiguity preservations, dropped relationships, and the full id map.
-Demoted entities become `demoted_false_positive` entries in `unresolved.json` — files,
-evidence, and the misleading strings all survive. Ids are evidence-derived slugs with
-content-hash collision suffixes, deterministic and independent of array position.
-
-**Reason**: "Do not make the output look better by deleting difficult cases without recording
-why" requires the no-delete + full-decision-log design; the 4B.2 positional `-2` id scheme
-must be retired at the one stage that re-issues ids.
-
-**Consequences**: consolidation output is auditable decision-by-decision; canonical JSON
-remains the source of truth; ambiguity survives unless strong typed evidence decides.
-
-### D-021 — Identity Is Carried by Evidence, Never by Array Position
-**Status**: Accepted (implemented 4C.2)
-
-**Decision**: Canonical ids minted by consolidation derive from the entity's own evidence
-(resolved seed term; 4B.2 positional suffixes stripped). A genuine slug collision resolves by
-appending a 6-hex FNV-1a hash of the entity's own sorted file set. Two same-seed entities
-where one lacks seedable evidence are not two entities — the weaker is demoted (D2) rather
-than suffixed.
-
-**Reason**: `feature-artist-2` was a carve-order artifact, not an identity; suffix-stripping
-plus evidence tiers separates "same capability twice" (demote) from "two capabilities with
-one name" (hash).
-
-**Consequences**: ids are stable across identical runs, unique within kind, independent of
-input order; covered by regression tests.
-
-### D-022 — Names Come from User-Facing and Group-Shared Evidence; Technical Language Is Provenance, Never Loss
-**Status**: Accepted (implemented 4C.3)
-
-**Decision**: Canonical names are derived by a tiered authority: Tier 1 capability-class
-labels (a verb+noun label yields a phrase name, eligible when the label is the entity's own
-distinctive control or echoes its seed vocabulary), Tier 2 the consolidation group's
-recorded shared vocabulary, Tier 4 the recorded technical identity. Behavioral (Tier 3)
-vocabulary is alias/keyword material only — measured churn removed it from renaming.
-Renames record `naming_evidence {previous_name, selected_from, tier, basis, rejected[]}`;
-previous names become aliases and technical terms survive as `implementation_terms`.
-
-**Reason**: 4B.2/4C.2 left technical template names ("Cmake", "Image" for poster-data,
-"Artist" for browsing) canonical because no later stage consumed stronger evidence. The
-measured churn of behavioral renames ('Keep', 'Prev', 'Cache') showed raw symbols must
-never outrank user-facing language — and that shared CTAs ("Browse Posters" on every page)
-must never retitle unrelated entities (seed-relatedness/exclusivity guard).
-
-**Consequences**: every rename is auditable and reversible via aliases; collision fallback
-keeps names unique; repos with no user-facing text (ProjectDock) honestly retain technical
-names with `technical_vocabulary_only` basis.
-
-### D-023 — Inspection Is Question-Driven, Evidence-First, and Budgeted
-**Status**: Accepted (implemented 4C.3)
-
-**Decision**: Source re-inspection happens only inside the VOI stage, only for enumerated
-open questions (complementary layers, shell-vs-capability, merge strength, ambiguity
-impact, type confirmation), only after existing evidence (annotation, symbols, clue index,
-consolidation decisions, relationships) has been consulted, under a deterministic per-
-question and per-repo budget. Every question records reason, expected impact, evidence
-consulted, files inspected, findings, decision, confidence, output change, and — when left
-open — what evidence would resolve it.
-
-**Reason**: the 4C.1 checkpoint showed inspection ranked file importance, never decision
-value (81.4% inspection, most reads null). Question-driven reads changed real outcomes
-(feature-lobby reclassified as shell context; all 4C.2 merges behavior-confirmed) with
-11–26 reads per repo instead of a repository re-scan.
-
-**Consequences**: uncertainty is preserved and operationalized (`would_resolve_with`);
-VOI can confirm or reverse consolidation decisions only with recorded read evidence; the
-budget is visible in the report and enforced deterministically.
-
-### D-012 — Structural Boundaries Do Not Define Semantic Boundaries
-**Status**: Accepted (validated on real codebases)
-
-**Decision**:
-Semantic Regions are carved on **evidence affinity** (UI vocabulary, symbol families, behavior
-tokens — weighted and IDF-normalized), never on Structural Unit membership. Structural Units are
-provenance (`source_structural_units`), not boundaries. Splitting a unit into several entities,
-spanning several units with one entity, extracting shared systems, and leaving evidence-poor
-areas unresolved are all mandatory, first-class behaviors.
-
-**Reason**:
-Real-codebase validation proved both directions: ProjectDock's 24-file core unit (8 production
-modules + 16 test files) carved into 6+ canonical regions, and CinePrint's 49-file
-collections-core unit into 8+ entities — while `feature-save`, `feature-collection`,
-`feature-profile`, and `system-image` each span multiple disconnected Structural Units.
-Structural connectivity is even *unreliable* as evidence: ProjectDock production modules import
-each other via relative imports Phase 3 did not capture, so the unit was test-glued, yet
-token-affinity carving still separated sensible regions.
-
-**Consequences**:
-Region carving cannot assume unit membership predicts semantics; over-merge/over-split
-prevention and ambiguity preservation must be enforced at resolution time. Validated weaknesses
-(automation/test noise, UI-string false positives, over-splitting) are documented in
-`tests/PHASE_4B2_VALIDATION.md` with root causes — not hidden.
-
-### D-011 — Deterministic Heuristic Investigator, No External Model SDK
-**Status**: Accepted
-
-**Decision**:
-Phase 4B.1 semantic investigation is a deterministic, heuristic pipeline (high-information file selection → targeted source reads → regex clue extraction → rule-based hypothesis with confidence/competing/ambiguity). No OpenAI/Anthropic SDK is added.
-
-**Reason**:
-CodeAtlas is intended to run inside an AI coding-agent environment; the agent *is* the reasoning layer. Bundling an external model API would couple the library to a vendor, require secrets, and hide provenance. A deterministic investigator preserves explainability, keeps every hypothesis traceable to structural + source evidence, and still demonstrates that investigation narrowing works. An agent can later refine the template hypotheses.
-
-**Consequences**:
-`src/investigate/` is zero-dependency, fully testable, and produces the same candidates on every run (ignoring timestamps). Semantic Candidate hypotheses are template-generated and intentionally coarse — Phase 4B.2 will polish them.
-
----
+> The architecture decision record lives in `DECISIONS.md` (D-001 and later).
+>
+> Phase 5A (D-030) migrated the full D-001…D-023 text verbatim from this section into
+> `DECISIONS.md`; this section is now a pointer so the record has a single home.
 
 ## Current Phase
+### Phase 5A — Productization Foundation
+**Status**: Complete (private-beta foundation; no 5B started)
+
+Delivered: Git baseline (`20c33a9`, tag `v0.4.0-core-verified`) with a `.gitignore`
+covering evidence caches, package artifacts, and local-only files; unified
+`codeatlas` CLI (`bin/codeatlas.js`, 10 CLI tests) orchestrating all 8 stages with
+`--help`/`--version`/`--output`, concise progress, and exit-code discipline; package
+metadata (0.5.0, MIT provisional per D-027, `bin`, keywords, `files` whitelist:
+54 files / ~108 kB, down from 205 / ~884 kB); rewritten README for private-beta
+developers; regenerated honest examples (`sample-output/` from the real pipeline,
+`minimal/` end-to-end walkthrough, obsolete `flows.json` removed); docs consistency
+tests; full PD + CP validation under `phase-5a/` via the unified CLI itself (PD 3F/10S,
+CP 15F/7S — matching 4C.3); decisions D-024…D-030 incl. the `DECISIONS.md` migration.
+Full suite green. See `tests/PHASE_5A_PRODUCTIZATION.md`.
+
 ### Phase 4C.3 — Naming, Typing, VOI Inspection, and Projection Completeness
-**Status**: Complete (implementation + real-corpus validation + regression gate; no 4C.4 started)
+**Status**: Complete (implementation + real-corpus validation + regression gate; 4C.4 not started)
 
 Delivered:
 - `src/canonical/{index,voi,naming,typing,describe,cli}.js` — canonical-resolution stage:
@@ -685,6 +353,7 @@ Findings:
 - The model needed to distinguish systems from user-visible features.
 
 ## Completed
+- 2026-09-04 — Phase 5A Productization Foundation: Git baseline (`20c33a9`, tag `v0.4.0-core-verified`; `.gitignore` covers evidence caches/package artifacts/local files); unified `codeatlas` CLI (`bin/codeatlas.js`: `--help`/`--version`/`--output`, progress + summary, exit-code discipline; 10 CLI tests); package 0.5.0 with MIT (provisional, D-027), `bin`, keywords, `files` whitelist (54 files / ~108 kB); README rewritten for private beta; examples regenerated from the real pipeline (`sample-output/`, `minimal/` walkthrough; `flows.json` removed); docs consistency tests (21); PD + CP validation under `phase-5a/` via the unified CLI (results match 4C.3); `DECISIONS.md` created with verbatim D-001…D-023 migration + new D-024…D-030. Full suite green (see below). `tests/PHASE_5A_PRODUCTIZATION.md`.
 - 2026-09-04 — Phase 4C.3 Naming/Typing/VOI/Projection: `src/canonical/` (VOI inspection D-023, tiered naming D-022, type review, description templates) + `src/project/render.js` (first Markdown projector, R11) + tests `tests/canonical/` (17) + `tests/projection/` (16, incl. 2 unfamiliar-repo smoke suites) + fixtures `smoke-react-app`/`smoke-python-cli`. Feature-lobby reclassified shell-context by VOI; all 4C.2 merges behavior-confirmed; 4 T1/T2 renames on CP (Search Artist, Submit Poster, Poster, +), 2 on PD; technical provenance preserved (aliases/implementation_terms/naming_evidence). CP canonical 23→22, PD 13 stable. Determinism byte-identical; 495-file manifest 0 changes; 194/194 tests. `tests/PHASE_4C3_FINAL.md`; decisions D-022/D-023; SKILL.md updated.
 - 2026-09-03 — Phase 4C.2 Consolidation: `src/consolidate/{index,rules,ids,cli}.js` — dedicated consolidation stage after 4B.2 consuming the annotation layer (D-019): demotions D0 (noise anchor)/D1 (state-seeded identity)/D2 (weaker duplicate)/D3 (context-only), separations with vocabulary+filename-stem bridges, merge ladder S1/S1b/S3/S5 with AM1/AM2/AM3 anti-merge vetoes, mixed-type layer partition with external-consumer check, collision-safe id minting (D-021), relationship remap; decision-complete `consolidations.json` (D-020). Tests `tests/consolidation/consolidation.test.js` (24) + fixture `tests/fixtures/consolidate-app/` — full suite 162/162 (138 pre-existing unmodified). Real-corpus validation `tests/evidence-cache/<repo>/phase-4c2/` (protected manifest 479 files 0 changes; byte-identical double runs): CP 41→23 canonical (14 demotions incl. feature-found/preview/palette/artist-2; context conflation split; auth 4→1 system; browsing merged; poster-data consolidated), PD 15→13 (3 S5 merges, ambiguity preserved); feature-lobby remains recorded for 4C.3/VOI. `tests/PHASE_4C2_CONSOLIDATION.md`; SKILL.md §5b; decisions D-019–D-021.
 - 2026-08-29 — Phase 4C.1 Checkpoint: re-ran 4A → 4B.1 → 4B.2 UNCHANGED against Collector v2 + Annotation evidence into isolated `tests/evidence-cache/<repo>/checkpoint-4c1/` (protected manifest: downstream src, schemas/templates/examples, all baseline outputs, both Phase 2 oracle maps — 257 files, 0 changes; repos 0 drift / owner-only CP drift). Results: PD structural transformed by resolved relative imports (edges 569→625, units 41→28, hub `app.py`, 22 production modules self-connected); PD semantic: 18 regions, 3F/12S/1A/2U, **first-ever 18 relationships**, module coverage 9→15/17, `system-pid` conflation RESOLVED (conflations 3→2), presentation recovered, `ambiguous-run` resolved (ambiguity 2→1), new technical names need 4C.3; CP byte-stable (41 entities identical ids/files, notion.ts + naming_conflict preserved, all 5 strong recoveries preserved). Annotation proven correct but **unconsumed**: all CP UI false positives persist unchanged (feature-found/artist-2/preview/lobby/palette) because downstream reads no annotation signal — the central checkpoint finding. Inspection: PD 75.4→70.8%, CP 81.4% unchanged (≤50% target NOT YET EXPECTED before 4C.2/4C.3). Determinism verified (byte-identical canonical outputs across full pipeline re-runs). 138/138 tests green. `tests/PHASE_4C1_CHECKPOINT_VALIDATION.md` (21 sections incl. signal-consumption matrix). Recommendation A: proceed to Phase 4C.2.
@@ -733,18 +402,16 @@ Findings:
 - **Q-009 — Entry-point → module anchoring:** npm scripts / `[project.scripts]` are not resolved to modules, so entry-point reachability is weak. Phase 4B may need this.
 
 ## Next Step
-**Phase 4C.3 is complete. The 4C remediation sequence (4C.0 → 4C.3) is finished.**
-Do NOT start any new phase automatically.
+**Phase 5A (Productization Foundation) is complete. Do NOT start Phase 5B.**
 
-The pipeline is now: Collector v2 → Annotation → 4A → 4B.1 → 4B.2 → 4C.2 Consolidate →
-4C.3 VOI + naming/type resolution → canonical JSON → Markdown projections — all stages
-deterministic, decision-complete, and validated on both oracle repositories (194/194
-tests). Private-beta recommendation and remaining limitations are in
-`tests/PHASE_4C3_FINAL.md` §19/§18: read-only map consumption is beta-ready; the recorded
-follow-ups are (a) retiring singleton fallback reads in 4B.1/4B.2 toward the ≤50%
-inspection target, (b) the two recorded oracle tensions (image grouping, server-infra
-separation) with documented resolution paths, (c) natural-language lookup (deferred by
-decision), (d) flow extraction (requires call-chain evidence).
+The tool is now a private-beta-ready package: one `codeatlas` command, versioned 0.5.0
+with a clean npm footprint, honest docs, and the full validated pipeline green
+(194+ tests). Recommended next actions in priority order: (1) recruit the private-beta
+cohort and capture friction notes per `tests/PHASE_4C3_RELEASE_READINESS.md` §10;
+(2) confirm or replace the provisional MIT license with the owner; (3) act on beta
+feedback before any public-beta packaging (registry `repository` metadata, broader
+real-repo validation). Semantic work stays deferred until beta feedback names a concrete
+problem.
 
-> Do not begin any new phase without explicit approval and a documented plan in
-> `progress.md`. Do not implement natural-language lookup or flow assertions.
+> Do not begin Phase 5B or any semantic refinement phase without explicit approval and a
+> documented plan in `progress.md`. Do not publish to npm.

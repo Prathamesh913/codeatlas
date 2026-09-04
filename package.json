@@ -1,20 +1,44 @@
 {
   "name": "codeatlas",
-  "version": "0.3.0",
-  "description": "Agent-first semantic codebase navigation system",
+  "version": "0.5.0",
+  "description": "Agent-first semantic codebase navigation: deterministic maps of features, systems, files, and relationships from source code",
   "type": "module",
+  "bin": {
+    "codeatlas": "bin/codeatlas.js"
+  },
+  "license": "MIT",
+  "keywords": [
+    "codebase-intelligence",
+    "semantic-navigation",
+    "code-analysis",
+    "developer-tools",
+    "documentation-generator"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "src/",
+    "schemas/",
+    "templates/",
+    "bin/",
+    "README.md",
+    "SKILL.md",
+    "LICENSE"
+  ],
   "scripts": {
+    "scan": "node bin/codeatlas.js",
     "collect": "node src/collect.js",
     "phase4a": "node src/structural/cli.js",
-    "test": "node --test tests/unit/*.test.js tests/fixtures/*.test.js tests/structural/*.test.js tests/investigate/*.test.js tests/semantic/*.test.js tests/consolidation/*.test.js tests/canonical/*.test.js tests/projection/*.test.js",
+    "test": "node --test tests/unit/*.test.js tests/fixtures/*.test.js tests/structural/*.test.js tests/investigate/*.test.js tests/semantic/*.test.js tests/consolidation/*.test.js tests/canonical/*.test.js tests/projection/*.test.js tests/cli/*.test.js tests/docs/*.test.js",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:fixtures": "node --test tests/fixtures/*.test.js",
     "test:structural": "node --test tests/structural/*.test.js",
     "test:investigate": "node --test tests/investigate/*.test.js",
-    "test:semantic": "node --test tests/semantic/*.test.js"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "license": "TBD"
+    "test:semantic": "node --test tests/semantic/*.test.js",
+    "test:canonical": "node --test tests/canonical/*.test.js",
+    "test:projection": "node --test tests/projection/*.test.js",
+    "test:cli": "node --test tests/cli/*.test.js",
+    "test:docs": "node --test tests/docs/*.test.js"
+  }
 }

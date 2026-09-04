@@ -1,151 +1,62 @@
-[
-  {
-    "path": "src/features/saved-posters/SavedPosterList.tsx",
-    "type": "component",
-    "technical_role": "Renders the saved-poster collection UI and delegates persistence loading to useSavedPosters.",
-    "semantic_role": "User-visible list that displays saved artwork.",
-    "features": ["saved-posters-list"],
-    "imports": [
-      "src/features/saved-posters/useSavedPosters.ts",
-      "src/components/poster/PosterCard.tsx"
-    ],
-    "imported_by": [],
-    "dependencies": ["react"],
-    "notes": []
-  },
-  {
-    "path": "src/features/saved-posters/useSavedPosters.ts",
-    "type": "hook",
-    "technical_role": "Provides saved-poster data with awareness of PosterSyncEngine state.",
-    "semantic_role": "Bridges UI state to the persistence/sync system.",
-    "features": ["saved-posters-list"],
-    "imports": [
-      "src/systems/poster-sync/PosterSyncEngine.ts",
-      "src/systems/poster-sync/posterStore.ts"
-    ],
-    "imported_by": [
-      "src/features/saved-posters/SavedPosterList.tsx"
-    ],
-    "dependencies": ["react"],
-    "notes": [
-      "Misleading filename risk: useSavedPosters alone would not communicate sync dependency without the system view."
-    ]
-  },
-  {
-    "path": "src/components/poster/PosterCard.tsx",
-    "type": "component",
-    "technical_role": "Reusable presentational card for poster thumbnails and metadata.",
-    "semantic_role": "Shared poster tile used in multiple screens.",
-    "features": [],
-    "imports": [],
-    "imported_by": [
-      "src/features/saved-posters/SavedPosterList.tsx",
-      "src/features/home/HomeFeed.tsx"
-    ],
-    "dependencies": ["react"],
-    "notes": [
-      "Supporting file without its own user-visible feature entry."
-    ]
-  },
-  {
-    "path": "src/systems/poster-sync/PosterSyncEngine.ts",
-    "type": "service",
-    "technical_role": "Core engine for saved-poster reconciliation and rehydration.",
-    "semantic_role": "Explains why saved posters appear, disappear, or reload incorrectly.",
-    "features": [],
-    "imports": [
-      "src/systems/poster-sync/posterStore.ts"
-    ],
-    "imported_by": [
-      "src/features/saved-posters/useSavedPosters.ts",
-      "src/features/poster-detail/PosterDetailView.tsx"
-    ],
-    "dependencies": [],
-    "notes": [
-      "Primary ownership file for the Poster Persistence System."
-    ]
-  },
-  {
-    "path": "src/systems/poster-sync/posterStore.ts",
-    "type": "store",
-    "technical_role": "Local persistence store for saved poster metadata.",
-    "semantic_role": "Shared persistence layer for saved poster state.",
-    "features": [],
-    "imports": [],
-    "imported_by": [
-      "src/systems/poster-sync/PosterSyncEngine.ts",
-      "src/features/saved-posters/useSavedPosters.ts"
-    ],
-    "dependencies": [],
-    "notes": []
-  },
-  {
-    "path": "src/features/poster-detail/PosterDetailView.tsx",
-    "type": "component",
-    "technical_role": "Renders poster detail and handles degraded availability states.",
-    "semantic_role": "Detail surface users expect to remain usable when sync or availability is uncertain.",
-    "features": ["poster-detail-availability"],
-    "imports": [
-      "src/systems/poster-sync/PosterSyncEngine.ts"
-    ],
-    "imported_by": [],
-    "dependencies": ["react"],
-    "notes": []
-  },
-  {
-    "path": "src/features/home/HomeFeed.tsx",
-    "type": "page",
-    "technical_role": "Renders the home feed composition and receives remote feed data.",
-    "semantic_role": "Home feed where users discover featured posters.",
-    "features": ["browse-home-feed"],
-    "imports": [
-      "src/components/poster/PosterCard.tsx"
-    ],
-    "imported_by": [],
-    "dependencies": ["react", "react-router-dom"],
-    "notes": []
-  },
-  {
-    "path": "src/systems/auth/AuthClient.ts",
-    "type": "service",
-    "technical_role": "Handles token refresh and authenticated request headers.",
-    "semantic_role": "Maintains authenticated session state for the app.",
-    "features": [],
-    "imports": [],
-    "imported_by": [
-      "src/hooks/useAuth.ts",
-      "src/systems/poster-sync/PosterSyncEngine.ts"
-    ],
-    "dependencies": [],
-    "notes": []
-  },
-  {
-    "path": "src/hooks/useAuth.ts",
-    "type": "hook",
-    "technical_role": "Exposes authentication actions and loading state.",
-    "semantic_role": "Supports UI flows that depend on login state.",
-    "features": [],
-    "imports": [
-      "src/systems/auth/AuthClient.ts",
-      "src/store/authStore.ts"
-    ],
-    "imported_by": [
-      "src/features/saved-posters/SavedPosterList.tsx"
-    ],
-    "dependencies": ["react"],
-    "notes": []
-  },
-  {
-    "path": "src/store/authStore.ts",
-    "type": "store",
-    "technical_role": "Holds user session metadata.",
-    "semantic_role": "Shared session state used by auth-dependent flows.",
-    "features": [],
-    "imports": [],
-    "imported_by": [
-      "src/hooks/useAuth.ts"
-    ],
-    "dependencies": [],
-    "notes": []
-  }
-]
+{
+  "tool": "codeatlas-canonical-resolver",
+  "version": "0.1.0",
+  "files": [
+    {
+      "path": "src/App.tsx",
+      "type": "component",
+      "language": "TypeScript JSX",
+      "relevance_class": "application",
+      "technical_role": "Implementation file of feature-board.",
+      "semantic_role": "Covers the idea and board part of the interface.",
+      "features": [
+        "feature-board"
+      ],
+      "systems": []
+    },
+    {
+      "path": "src/components/IdeaForm.tsx",
+      "type": "component",
+      "language": "TypeScript JSX",
+      "relevance_class": "application",
+      "technical_role": "Implementation file of feature-form.",
+      "semantic_role": "Lets users add idea and click.",
+      "features": [
+        "feature-form"
+      ],
+      "systems": []
+    },
+    {
+      "path": "src/lib/ideas.ts",
+      "type": "module",
+      "language": "TypeScript",
+      "relevance_class": "application",
+      "technical_role": "application file; not mapped to a canonical entity.",
+      "semantic_role": "Not mapped to a canonical entity.",
+      "features": [
+        "feature-board"
+      ],
+      "systems": []
+    },
+    {
+      "path": "src/lib/storage.ts",
+      "type": "module",
+      "language": "TypeScript",
+      "relevance_class": "application",
+      "technical_role": "application file; not mapped to a canonical entity.",
+      "semantic_role": "Not mapped to a canonical entity.",
+      "features": [],
+      "systems": []
+    },
+    {
+      "path": "tests/ideas.test.ts",
+      "type": "test",
+      "language": "TypeScript",
+      "relevance_class": "test",
+      "technical_role": "test file; not mapped to a canonical entity.",
+      "semantic_role": "Not mapped to a canonical entity.",
+      "features": [],
+      "systems": []
+    }
+  ]
+}

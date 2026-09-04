@@ -98,6 +98,21 @@ CodeAtlas operates in five distinct modes:
 
 ## 4. Mode Specifications
 
+### Running a scan (private beta)
+
+```bash
+codeatlas <repository-path> [--output <directory>]
+codeatlas --help
+codeatlas --version
+```
+
+Output defaults to `<repository>/.codeatlas` and is never written into repository
+sources. The run prints per-stage progress and ends with a summary line
+(`N features, M systems, …`) plus the output directory. Exit code 0 means success;
+anything else prints a `codeatlas: error: …` message. Stage-specific CLIs under
+`src/*/cli.js` remain as internal entrypoints; the unified `bin/codeatlas.js`
+(`codeatlas` via the package `bin` field) is the supported interface.
+
 ### Mode: `scan`
 
 #### Purpose
