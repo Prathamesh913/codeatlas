@@ -1,0 +1,63 @@
+name: Feature request
+description: Propose an improvement to CodeAtlas
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature requests that change the semantic model or public output schema
+        (canonical JSON shapes, artifact names, Markdown contracts) are reviewed
+        especially carefully — see CONTRIBUTING.md §"What should not change
+        without discussion".
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem being solved
+      description: What can you not do (or do painfully) today?
+    validations:
+      required: true
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How do you work around this today?
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed behavior
+      description: What should happen, concretely? Prefer examples over abstractions.
+    validations:
+      required: true
+  - type: textarea
+    id: why-matters
+    attributes:
+      label: Why it matters
+      description: What does this unlock for agents or developers?
+    validations:
+      required: true
+  - type: dropdown
+    id: affected-users
+    attributes:
+      label: Affected users
+      multiple: true
+      options:
+        - AI coding agents (map consumers)
+        - Human developers browsing generated docs
+        - Contributors / tool developers
+        - Private-beta testers
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches, and why the proposal is better.
+  - type: checkboxes
+    id: semantic-model-impact
+    attributes:
+      label: Semantic model or output schema impact
+      options:
+        - label: This proposal changes the semantic model (entities, resolution, boundaries)
+        - label: This proposal changes the public output schema (JSON shapes, artifact names, Markdown contracts)
+        - label: This proposal changes the CLI contract (options, exit codes)
+        - label: None of the above
+    validations:
+      required: true

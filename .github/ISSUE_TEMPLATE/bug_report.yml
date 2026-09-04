@@ -1,0 +1,126 @@
+name: Bug report
+description: Something in CodeAtlas did not work as documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please **do not include private source code,
+        proprietary code, secrets, credentials, or unredacted logs** — see
+        SECURITY.md. Redact paths and names where needed.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Concise problem summary
+      description: What happened, in one or two sentences?
+    validations:
+      required: true
+  - type: input
+    id: codeatlas-version
+    attributes:
+      label: CodeAtlas version
+      description: Output of `codeatlas --version` (or `node bin/codeatlas.js --version`)
+    validations:
+      required: true
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: Output of `node --version`
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: e.g. Ubuntu 24.04, macOS 15, Windows 11
+    validations:
+      required: true
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Installation method
+      options:
+        - Local checkout (node bin/codeatlas.js)
+        - Package tarball (npm install ./codeatlas-*.tgz)
+        - npm link from a checkout
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: target-repo-stack
+    attributes:
+      label: Target repository language/framework
+      description: e.g. TypeScript + React; Python + CLI. Do not paste the repository name if private.
+  - type: input
+    id: target-repo-size
+    attributes:
+      label: Target repository size
+      description: Approximate file count (e.g. "about 300 files")
+  - type: textarea
+    id: command
+    attributes:
+      label: Exact command used
+      description: The full command line, with private paths redacted.
+      placeholder: node bin/codeatlas.js ./my-app --output ./map
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect the map/output to contain or do?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include the relevant summary line if the run completed.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: |
+        CLI output or error messages. Redact private paths, names, and any secrets.
+        Small excerpts are more useful than full dumps.
+  - type: dropdown
+    id: artifact-or-stage
+    attributes:
+      label: Generated artifact or stage involved
+      options:
+        - canonical/features.json
+        - canonical/systems.json
+        - canonical/relationships.json
+        - canonical/files.json
+        - canonical/unresolved.json
+        - canonical/canonical-report.json
+        - evidence/* (collector)
+        - annotation/*
+        - structural/*
+        - investigation/*
+        - semantic/*
+        - consolidation/*
+        - markdown/* (projection)
+        - CLI behavior itself
+        - Not sure
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: Is the issue reproducible?
+      options:
+        - "Yes, every run"
+        - "Yes, sometimes"
+        - "Only once so far"
+        - Unknown
+    validations:
+      required: true
+  - type: checkboxes
+    id: redaction
+    attributes:
+      label: Redaction confirmation
+      options:
+        - label: Private source code has been removed or redacted from this report
+          required: true

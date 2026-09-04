@@ -1,0 +1,28 @@
+name: Documentation
+description: Report unclear, stale, or missing documentation
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Documentation accuracy is pinned by tests (`tests/docs/docs.test.js`) —
+        reports about stale claims (e.g. promises the pipeline does not fulfill)
+        are especially welcome.
+  - type: textarea
+    id: location
+    attributes:
+      label: Documentation location
+      description: Which file/section? (e.g. README.md §"Limitations")
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is unclear, stale, or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      description: Concrete wording or structure, if you have one.

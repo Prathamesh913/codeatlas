@@ -1,0 +1,154 @@
+name: Private-beta feedback
+description: Structured feedback from private-beta testing on a real repository
+labels: ["private-beta", "feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing CodeAtlas. This template collects what the private
+        beta most needs to learn. **Do not submit private source code, proprietary
+        code, credentials, API keys, environment files, customer data, personal
+        data, private repository URLs, or unredacted logs.** Describe your
+        repository by language/framework and size, never by name or URL. See
+        docs/private-beta.md for anonymization guidance and the full task list.
+  - type: input
+    id: repo-tested
+    attributes:
+      label: Repository tested (anonymized)
+      description: Language/framework + approximate file count. No names, no URLs.
+      placeholder: "TypeScript + React, about 400 files"
+    validations:
+      required: true
+  - type: dropdown
+    id: install-experience
+    attributes:
+      label: Installation experience
+      options:
+        - Smooth
+        - Minor friction (resolved with docs)
+        - Friction (needed help)
+        - Could not install
+    validations:
+      required: true
+  - type: dropdown
+    id: cli-clarity
+    attributes:
+      label: CLI clarity
+      options:
+        - Clear
+        - Mostly clear
+        - Confusing
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime-performance
+    attributes:
+      label: Runtime and performance
+      options:
+        - Fast enough (seconds)
+        - Acceptable
+        - Too slow for my repository size
+    validations:
+      required: true
+  - type: dropdown
+    id: feature-usefulness
+    attributes:
+      label: Usefulness of generated features
+      options:
+        - Very useful
+        - Somewhat useful
+        - Not useful
+    validations:
+      required: true
+  - type: dropdown
+    id: system-usefulness
+    attributes:
+      label: Usefulness of generated systems
+      options:
+        - Very useful
+        - Somewhat useful
+        - Not useful
+        - No systems were generated (tell us if you expected some)
+    validations:
+      required: true
+  - type: dropdown
+    id: relationship-usefulness
+    attributes:
+      label: Usefulness of relationships
+      options:
+        - Very useful
+        - Somewhat useful
+        - Not useful
+    validations:
+      required: true
+  - type: dropdown
+    id: docs-usefulness
+    attributes:
+      label: Usefulness of generated documentation
+      options:
+        - Very useful
+        - Somewhat useful
+        - Not useful
+    validations:
+      required: true
+  - type: dropdown
+    id: names-understandable
+    attributes:
+      label: Were the names understandable?
+      options:
+        - Yes, mostly user-facing names
+        - Mixed (some technical names)
+        - No, mostly technical names
+    validations:
+      required: true
+  - type: checkboxes
+    id: gaps
+    attributes:
+      label: What did the map get wrong or miss?
+      options:
+        - label: Important capabilities were missing from the map
+        - label: Unrelated files were incorrectly grouped into an entity
+        - label: Ambiguity was handled inappropriately (forced, or unresolved areas I expected to resolve)
+        - label: Output confused or misled me (describe below)
+  - type: dropdown
+    id: agent-helpful
+    attributes:
+      label: Did the output help an AI coding agent?
+      options:
+        - "Yes, meaningfully"
+        - Slightly
+        - "No"
+        - Did not test with an agent
+    validations:
+      required: true
+  - type: textarea
+    id: confusing
+    attributes:
+      label: Confusing or misleading output
+      description: Any entity name, grouping, unresolved entry, or doc page that confused or misled you — include the entity `id`.
+  - type: textarea
+    id: most-valuable
+    attributes:
+      label: Most valuable result
+      description: The single most useful thing the map gave you.
+  - type: textarea
+    id: biggest-limitation
+    attributes:
+      label: Biggest limitation
+      description: What held the tool back most?
+  - type: dropdown
+    id: recommend
+    attributes:
+      label: Would you recommend CodeAtlas to a colleague today?
+      options:
+        - "Yes"
+        - With reservations
+        - "No"
+    validations:
+      required: true
+  - type: checkboxes
+    id: quote-permission
+    attributes:
+      label: Anonymized feedback permission
+      options:
+        - label: I give permission to quote this feedback, anonymized, in project documentation

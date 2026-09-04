@@ -1,0 +1,59 @@
+# Minimal offline CI for CodeAtlas (private beta).
+# Zero runtime dependencies — no npm install needed for the test suite.
+# CI verifies: the full test suite, the files whitelist, the CLI contract,
+# and a smoke run against a copied fixture (never a private external repo).
+# CI never publishes.
+
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 18 (engines floor from package.json)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Full test suite
+        run: npm test
+
+      - name: CLI contract (--help, --version, failure exit codes)
+        run: |
+          node bin/codeatlas.js --help > /dev/null
+          VERSION="$(node bin/codeatlas.js --version)"
+          test "$VERSION" = "$(node -p 'require("./package.json").version')"
+          if node bin/codeatlas.js /does/not/exist > /dev/null 2>&1; then
+            echo "expected non-zero exit for a bad repository path"; exit 1
+          fi
+
+      - name: npm files whitelist (no tests/fixtures/evidence in the tarball)
+        run: |
+          npm pack --dry-run 2>&1 | tee /tmp/pack.txt
+          if grep -qE "tests/|fixtures|evidence-cache" /tmp/pack.txt; then
+            echo "whitelist violation: tarball contains test/fixture/evidence files"; exit 1
+          fi
+          if [ "$(grep -c "npm notice" /tmp/pack.txt)" -lt 20 ]; then
+            echo "unexpected tarball size"; exit 1
+          fi
+
+      - name: Smoke run on a fixture copy (deterministic + source-safe)
+        run: |
+          rm -rf /tmp/atlas-ci && cp -r tests/fixtures/smoke-react-app /tmp/atlas-ci
+          node bin/codeatlas.js /tmp/atlas-ci --output /tmp/atlas-ci-map > /tmp/smoke.txt
+          grep -q "codeatlas: done" /tmp/smoke.txt
+          # determinism: a rerun produces byte-identical canonical artifacts
+          node bin/codeatlas.js /tmp/atlas-ci --output /tmp/atlas-ci-map2 > /dev/null
+          diff -r /tmp/atlas-ci-map/canonical /tmp/atlas-ci-map2/canonical
+          # source safety: the analyzed fixture copy carries no .codeatlas (custom --output used)
+          test ! -e /tmp/atlas-ci/.codeatlas
+          rm -rf /tmp/atlas-ci /tmp/atlas-ci-map /tmp/atlas-ci-map2 /tmp/smoke.txt
