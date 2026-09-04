@@ -127,6 +127,8 @@ drift.
 | `codeatlas: error: repository path 'X' does not exist.` | bad path / typo | check the path |
 | `codeatlas: error: repository path 'X' is not a directory.` | a file was passed | pass a directory |
 | `codeatlas: error: EEXIST ... mkdir 'X'` | `--output` path exists as a file | choose a directory path |
+| `codeatlas: error: --output requires a directory argument` | no path after `--output` | pass the directory after `--output` |
+| `codeatlas: error: unknown option '--X'. See codeatlas --help.` | unsupported flag | check `codeatlas --help` |
 | `EACCES`/`EPERM` while writing | no write permission for output dir | pick a writable `--output` |
 | `EACCES` while reading the repo | no read permission | fix permissions or copy the repo |
 

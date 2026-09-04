@@ -74,3 +74,18 @@ Resolved since this document was drafted: the public repository now exists
 - No semantic architecture changes (deferred until beta feedback names a problem).
 - No flows extraction, no natural-language lookup (deferred by decision).
 - No invented URLs, badges, benchmarks, testimonials, or contact addresses.
+
+## Roadmap / next steps
+
+1. **Private beta** — recruit 3–5 developers, capture friction
+   ([docs/private-beta.md](private-beta.md)).
+2. **License confirmation** — owner confirms or replaces the provisional MIT (D-027).
+3. **Unfamiliar-repository validation** — broader real-repo testing beyond ProjectDock
+   and CinePrint.
+4. **Act on beta feedback** — semantic improvements only when feedback names a concrete
+   problem.
+5. Deferred by decision (not planned for 0.5.x): flow extraction (needs call-chain
+   evidence), natural-language lookup.
+
+Semantic architecture redesign is intentionally deferred; the current pipeline is the
+validated baseline.

@@ -49,6 +49,14 @@ describe('docs — README honesty', () => {
   it('contains no badges or images (no fake badges)', () => {
     assert.ok(!/!\[/.test(readme), 'README must not embed badge images');
   });
+  it('stays a scannable landing page (relocated detail lives in docs/)', () => {
+    const lines = readme.split('\n').length;
+    const words = readme.split(/\s+/).filter(Boolean).length;
+    assert.ok(lines <= 200, `README must stay a landing page, not a spec (${lines} lines)`);
+    assert.ok(words <= 1300, `README must stay concise (${words} words)`);
+    assert.match(readme, /docs\/concepts\.md/, 'concept detail relocated to docs/concepts.md');
+    assert.match(readme, /docs\/output-format\.md/, 'artifact detail relocated to docs/output-format.md');
+  });
 });
 
 describe('docs — SKILL.md pipeline coverage', () => {
@@ -63,6 +71,7 @@ describe('docs — SKILL.md pipeline coverage', () => {
 describe('docs — flows honesty across all guides', () => {
   const files = [
     'README.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
+    'docs/concepts.md', 'docs/output-format.md',
     'docs/installation.md', 'docs/uninstallation.md', 'docs/usage.md',
     'docs/private-beta.md', 'docs/release-readiness.md',
   ];
@@ -80,6 +89,7 @@ describe('docs — local markdown links resolve', () => {
   const LINK = /\]\(([^)#\s]+)(#[^)\s]*)?\)/g;
   const DOC_FILES = [
     'README.md', 'CONTRIBUTING.md', 'SECURITY.md', 'CHANGELOG.md', 'CODE_OF_CONDUCT.md',
+    'docs/concepts.md', 'docs/output-format.md',
     'docs/installation.md', 'docs/uninstallation.md', 'docs/usage.md',
     'docs/private-beta.md', 'docs/release-readiness.md',
     '.github/pull_request_template.md',
@@ -108,6 +118,7 @@ describe('docs — GitHub project files present', () => {
     '.github/ISSUE_TEMPLATE/documentation.yml',
     'docs/installation.md', 'docs/uninstallation.md', 'docs/usage.md',
     'docs/private-beta.md', 'docs/release-readiness.md',
+    'docs/concepts.md', 'docs/output-format.md',
   ]) {
     it(`${file} exists and is non-empty`, () => {
       assert.ok(existsSync(join(ROOT, file)), `${file} present`);

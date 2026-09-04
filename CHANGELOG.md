@@ -24,6 +24,13 @@ Documentation and repository preparation (this phase, unreleased):
 - Decisions D-031 (GitHub documentation set), D-032 (CI).
 - Real repository URL added: `package.json` `repository`/`bugs` metadata,
   clone commands in README/CONTRIBUTING/installation.
+- README redesigned into a concise product landing page (775 words vs ~1,970):
+  problem, output, one real example, quick start, investigation workflow, honest
+  status, documentation navigation. Detailed content relocated to new
+  `docs/concepts.md` (concepts, trust model) and `docs/output-format.md`
+  (artifacts, pipeline stages); troubleshooting rows moved to the installation
+  guide; roadmap moved to `docs/release-readiness.md`. Landing-page conciseness
+  pinned by a docs test.
 
 ## 0.5.0 — 2026-09-04### Added
 
