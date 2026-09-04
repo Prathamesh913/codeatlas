@@ -1,0 +1,4 @@
+[
+  { "source": "A.ts", "target": "./h", "type": "import", "classification": "local", "symbols": ["sharedUtil"], "resolution_status": "resolved", "resolved_path": "H.ts", "confidence": "high" },
+  { "source": "B.ts", "target": "./h", "type": "import", "classification": "local", "symbols": [], "resolution_status": "resolved", "resolved_path": "H.ts", "confidence": "high" }
+]

@@ -1,0 +1,4 @@
+[
+  { "source": "A.ts", "target": "./b", "type": "import", "classification": "local", "symbols": [], "resolution_status": "resolved", "resolved_path": "B.ts", "confidence": "high" },
+  { "source": "A.ts", "target": "./missing-module", "type": "import", "classification": "local", "symbols": [], "resolution_status": "unresolved", "resolved_path": null, "confidence": "high" }
+]

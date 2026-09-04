@@ -1,0 +1,6 @@
+[
+  { "source": "A.ts", "target": "./b", "type": "import", "classification": "local", "symbols": [], "resolution_status": "resolved", "resolved_path": "B.ts", "confidence": "high" },
+  { "source": "B.ts", "target": "./c", "type": "import", "classification": "local", "symbols": [], "resolution_status": "resolved", "resolved_path": "C.ts", "confidence": "high" },
+  { "source": "C.ts", "target": "./d", "type": "import", "classification": "local", "symbols": [], "resolution_status": "resolved", "resolved_path": "D.ts", "confidence": "high" },
+  { "source": "D.ts", "target": "./e", "type": "import", "classification": "local", "symbols": [], "resolution_status": "resolved", "resolved_path": "E.ts", "confidence": "high" }
+]

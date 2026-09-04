@@ -1,9 +1,16 @@
 # Phase 4A validation inputs/outputs (regenerated on demand)
 tests/evidence-cache/
-tests/**/structural/
+# Generated structural outputs inside the evidence cache only. A broader
+# tests/**/structural/ rule used to also ignore tests/structural/ (the Phase 4A
+# test suite) and tests/fixtures/structural/ (its fixtures), so they were never
+# committed and CI failed with an unmatched tests/structural/*.test.js glob.
+tests/evidence-cache/**/structural/
 
 # Node
 node_modules/
+# Intentional fixture: a fake node_modules package that exercises the collector's
+# exclusion rules (tests/unit/files.test.js). Re-include only this fixture tree.
+!tests/fixtures/exclusion-app/node_modules/
 
 # Package artifacts
 *.tgz

@@ -1,0 +1,5 @@
+[
+  { "path": "A.ts", "extension": ".ts", "language": "TypeScript", "type": "TypeScript", "size": 10, "included": true, "excluded_reason": null },
+  { "path": "B.ts", "extension": ".ts", "language": "TypeScript", "type": "TypeScript", "size": 10, "included": true, "excluded_reason": null },
+  { "path": "C.ts", "extension": ".ts", "language": "TypeScript", "type": "TypeScript", "size": 10, "included": true, "excluded_reason": null }
+]

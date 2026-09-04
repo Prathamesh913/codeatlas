@@ -1,0 +1,5 @@
+[
+  { "source": "A.ts", "target": "./b", "type": "import", "classification": "local", "symbols": [], "resolution_status": "resolved", "resolved_path": "B.ts", "confidence": "high" },
+  { "source": "B.ts", "target": "./c", "type": "import", "classification": "local", "symbols": [], "resolution_status": "resolved", "resolved_path": "C.ts", "confidence": "high" },
+  { "source": "C.ts", "target": "./a", "type": "import", "classification": "local", "symbols": [], "resolution_status": "resolved", "resolved_path": "A.ts", "confidence": "high" }
+]

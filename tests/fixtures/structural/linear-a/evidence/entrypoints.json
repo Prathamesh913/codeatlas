@@ -1,0 +1,3 @@
+[
+  { "type": "module_entry", "file": "A.ts", "description": "A.ts is an entry module", "confidence": "high" }
+]
