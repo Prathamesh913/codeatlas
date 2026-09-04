@@ -466,3 +466,43 @@ record moved exactly once, mechanically, with the migration itself recorded here
 
 **Consequences**: phase prompts can keep referencing PROGRESS.md / SKILL.md /
 DECISIONS.md truthfully; `progress.md` stays a phase log.
+
+### D-031 — GitHub Project Documentation Set (private-beta publication state)
+**Status**: Accepted (implemented Phase 5A2)
+
+**Decision**: The repository is documented as a complete GitHub project for private-beta
+discovery: README expanded (generation artifacts incl. `evidence/manifest.json` and the
+INDEX.md query index, concept glossary incl. structural units and flows-explicitly-absent,
+pipeline stages, trust model, not-claims, maturity incl. ProjectDock/CinePrint validation
+and the unfamiliar-repo gap, install/usage/uninstall/troubleshooting, contribution, issue,
+private-beta, security, roadmap, citation guidance); `docs/installation.md`,
+`docs/uninstallation.md`, `docs/usage.md`, `docs/private-beta.md`,
+`docs/release-readiness.md`; `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`
+(Contributor Covenant 2.1, no invented enforcement contact), `CHANGELOG.md`.
+Two claims are pinned by tests: **npm availability does not exist** (the previous README's
+`npx codeatlas` example implied it) and **public release is blocked pending owner license
+confirmation**.
+
+**Reason**: A GitHub visitor must understand, install, uninstall, contribute, and report —
+while the repository stays honest about private-beta state (D-029's honesty contract,
+extended to publication surfaces).
+
+**Consequences**: README claims are pinned by `tests/docs/` (80 tests at this phase);
+invented URLs, badges, benchmarks, and contact addresses are structurally excluded by
+test.
+
+### D-032 — CI Workflow (offline verification, never publish)
+**Status**: Accepted (implemented Phase 5A2)
+
+**Decision**: A minimal GitHub Actions workflow (`.github/workflows/ci.yml`) runs on
+Node 18 (the `engines` floor): the full test suite, the CLI contract (`--help`,
+`--version`, failure exit codes), the `files` whitelist (`npm pack --dry-run` must
+contain no tests/fixtures/evidence), and a fixture smoke run asserting determinism
+(byte-identical rerun) and source safety (no `.codeatlas` inside the analyzed copy).
+CI never publishes and requires no secrets.
+
+**Reason**: Zero-dependency, offline-testable repo — CI adds verification value with no
+network-dependent setup; publication is out of scope.
+
+**Consequences**: whitelist violations, CLI drift, and nondeterminism are caught on every
+push/PR without maintainer action.

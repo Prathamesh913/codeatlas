@@ -18,6 +18,25 @@ CodeAtlas is an agent-first codebase intelligence and semantic navigation system
 > `DECISIONS.md`; this section is now a pointer so the record has a single home.
 
 ## Current Phase
+### Phase 5A2 — GitHub Publication Preparation
+**Status**: Complete (documentation + repository-productization; nothing published)
+
+Delivered: README expanded for GitHub discovery (all generation artifacts incl.
+`evidence/manifest.json` + INDEX.md query index, concept glossary, pipeline stages,
+trust model, not-claims, maturity incl. ProjectDock/CinePrint + unfamiliar-repo gap,
+install/usage/uninstall/troubleshooting/contribution/issue/private-beta/security/roadmap/
+citation; the previous `npx codeatlas` example removed — npm availability does not
+exist); `docs/{installation,uninstallation,usage,private-beta,release-readiness}.md`;
+`CONTRIBUTING.md`, `SECURITY.md` (no invented contact; interim private-beta process),
+`CODE_OF_CONDUCT.md` (Contributor Covenant 2.1, enforcement contact honestly absent),
+`CHANGELOG.md`; `.github/` with 4 issue templates, PR template, offline CI (Node 18:
+suite + CLI contract + whitelist + determinism/source-safe smoke; never publish);
+`tests/docs/` extended 21→80 (repository file checks, local-link resolution,
+npm-availability honesty, uninstall accuracy, template sanity, changelog/security/CI
+accuracy). Decisions D-031/D-032. Suite 284/73/0; tarball still 54 files, 0
+test/fixture/evidence content. Nothing pushed, published, or released — release blocked
+pending owner license confirmation. See `tests/PHASE_5A2_GITHUB_PUBLICATION.md`.
+
 ### Phase 5A — Productization Foundation
 **Status**: Complete (private-beta foundation; no 5B started)
 
@@ -353,6 +372,7 @@ Findings:
 - The model needed to distinguish systems from user-visible features.
 
 ## Completed
+- 2026-09-04 — Phase 5A2 GitHub Publication Preparation: README expanded (generation artifacts, concepts incl. structural units + flows-explicitly-absent, pipeline stages, trust model, not-claims, maturity incl. ProjectDock/CinePrint + unfamiliar-repo gap, install/usage/uninstall/troubleshooting/contribution/issue/private-beta/security/roadmap/citation; `npx codeatlas` availability claim removed); `docs/{installation,uninstallation,usage,private-beta,release-readiness}.md`; `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` (CC 2.1, no invented contact), `CHANGELOG.md`; `.github/` (4 issue templates, PR template, offline CI on Node 18 — suite + CLI + whitelist + deterministic/source-safe smoke, never publish); `tests/docs/` 21→80 incl. local-link resolution + npm-honesty + template sanity; decisions D-031/D-032. 284/73/0. Nothing published; release blocked pending owner license confirmation. `tests/PHASE_5A2_GITHUB_PUBLICATION.md`.
 - 2026-09-04 — Phase 5A Productization Foundation: Git baseline (`20c33a9`, tag `v0.4.0-core-verified`; `.gitignore` covers evidence caches/package artifacts/local files); unified `codeatlas` CLI (`bin/codeatlas.js`: `--help`/`--version`/`--output`, progress + summary, exit-code discipline; 10 CLI tests); package 0.5.0 with MIT (provisional, D-027), `bin`, keywords, `files` whitelist (54 files / ~108 kB); README rewritten for private beta; examples regenerated from the real pipeline (`sample-output/`, `minimal/` walkthrough; `flows.json` removed); docs consistency tests (21); PD + CP validation under `phase-5a/` via the unified CLI (results match 4C.3); `DECISIONS.md` created with verbatim D-001…D-023 migration + new D-024…D-030. Full suite green (see below). `tests/PHASE_5A_PRODUCTIZATION.md`.
 - 2026-09-04 — Phase 4C.3 Naming/Typing/VOI/Projection: `src/canonical/` (VOI inspection D-023, tiered naming D-022, type review, description templates) + `src/project/render.js` (first Markdown projector, R11) + tests `tests/canonical/` (17) + `tests/projection/` (16, incl. 2 unfamiliar-repo smoke suites) + fixtures `smoke-react-app`/`smoke-python-cli`. Feature-lobby reclassified shell-context by VOI; all 4C.2 merges behavior-confirmed; 4 T1/T2 renames on CP (Search Artist, Submit Poster, Poster, +), 2 on PD; technical provenance preserved (aliases/implementation_terms/naming_evidence). CP canonical 23→22, PD 13 stable. Determinism byte-identical; 495-file manifest 0 changes; 194/194 tests. `tests/PHASE_4C3_FINAL.md`; decisions D-022/D-023; SKILL.md updated.
 - 2026-09-03 — Phase 4C.2 Consolidation: `src/consolidate/{index,rules,ids,cli}.js` — dedicated consolidation stage after 4B.2 consuming the annotation layer (D-019): demotions D0 (noise anchor)/D1 (state-seeded identity)/D2 (weaker duplicate)/D3 (context-only), separations with vocabulary+filename-stem bridges, merge ladder S1/S1b/S3/S5 with AM1/AM2/AM3 anti-merge vetoes, mixed-type layer partition with external-consumer check, collision-safe id minting (D-021), relationship remap; decision-complete `consolidations.json` (D-020). Tests `tests/consolidation/consolidation.test.js` (24) + fixture `tests/fixtures/consolidate-app/` — full suite 162/162 (138 pre-existing unmodified). Real-corpus validation `tests/evidence-cache/<repo>/phase-4c2/` (protected manifest 479 files 0 changes; byte-identical double runs): CP 41→23 canonical (14 demotions incl. feature-found/preview/palette/artist-2; context conflation split; auth 4→1 system; browsing merged; poster-data consolidated), PD 15→13 (3 S5 merges, ambiguity preserved); feature-lobby remains recorded for 4C.3/VOI. `tests/PHASE_4C2_CONSOLIDATION.md`; SKILL.md §5b; decisions D-019–D-021.
@@ -402,16 +422,18 @@ Findings:
 - **Q-009 — Entry-point → module anchoring:** npm scripts / `[project.scripts]` are not resolved to modules, so entry-point reachability is weak. Phase 4B may need this.
 
 ## Next Step
-**Phase 5A (Productization Foundation) is complete. Do NOT start Phase 5B.**
+**Phase 5A2 (GitHub Publication Preparation) is complete. Do NOT start Phase 5B.**
 
-The tool is now a private-beta-ready package: one `codeatlas` command, versioned 0.5.0
-with a clean npm footprint, honest docs, and the full validated pipeline green
-(194+ tests). Recommended next actions in priority order: (1) recruit the private-beta
-cohort and capture friction notes per `tests/PHASE_4C3_RELEASE_READINESS.md` §10;
-(2) confirm or replace the provisional MIT license with the owner; (3) act on beta
-feedback before any public-beta packaging (registry `repository` metadata, broader
-real-repo validation). Semantic work stays deferred until beta feedback names a concrete
-problem.
+The repository is a complete GitHub project for private-beta discovery: documentation set
+(docs/, CONTRIBUTING, SECURITY, CoC, CHANGELOG), issue/PR templates, offline CI, and
+honesty pinned by tests (npm availability does not exist; public release blocked pending
+owner license confirmation). Recommended next actions in priority order: (1) owner
+confirms or replaces the provisional MIT license; (2) create the public GitHub repository
+(add the real URL to `package.json` `repository` and changelog links), configure private
+security/feedback channels; (3) push and recruit the 3–5 developer private-beta cohort
+per `docs/private-beta.md`; (4) act on feedback. Semantic work stays deferred until beta
+feedback names a concrete problem.
 
 > Do not begin Phase 5B or any semantic refinement phase without explicit approval and a
-> documented plan in `progress.md`. Do not publish to npm.
+> documented plan in `progress.md`. Do not publish to npm, create a GitHub release, or
+> push without explicit owner instruction.

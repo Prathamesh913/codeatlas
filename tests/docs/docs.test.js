@@ -1,4 +1,6 @@
 // CodeAtlas Phase 5A — documentation consistency tests.
+// Phase 5A2 — GitHub publication: repository file checks, local-link resolution,
+// npm-availability honesty, uninstall accuracy, and template sanity.
 // Documentation must agree with the implementation: no stale promises,
 // no missing contract references, version metadata in agreement.
 import { describe, it } from 'node:test';
@@ -10,14 +12,17 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (p) => readFileSync(join(ROOT, p), 'utf-8');
 
+// Honest-absence phrasings: lines that state flows.json is NOT generated are
+// permitted; any other flows.json mention is treated as a promise.
+const ABSENCE = /not currently generated|no call-chain|rather than fabricat|does not generate|not generate|not generated|not extracted|never generated|part of the model|promises|removed|not.*currently generated/i;
+const stripAbsence = (text) =>
+  text.split('\n').filter((line) => !ABSENCE.test(line)).join('\n');
+
 describe('docs — README honesty', () => {
   const readme = read('README.md');
   it('does not promise flows.json as a generated artifact', () => {
-    const withoutLimitation = readme
-      .split('\n')
-      .filter((line) => !/not currently generated|no call-chain|rather than fabricat/i.test(line))
-      .join('\n');
-    assert.ok(!/flows\.json/.test(withoutLimitation), 'README must not promise flows.json');
+    const withoutAbsence = stripAbsence(readme);
+    assert.ok(!/flows\.json/.test(withoutAbsence), 'README must not promise flows.json');
   });
   it('documents the real CLI invocation and output option', () => {
     assert.match(readme, /codeatlas <repository-path>/);
@@ -33,6 +38,17 @@ describe('docs — README honesty', () => {
   it('states that source repositories are never modified', () => {
     assert.match(readme, /never modified/i);
   });
+  it('states that npm availability does not exist and must not be claimed', () => {
+    assert.match(readme, /Not published on npm/);
+    assert.match(readme, /do not work/);
+  });
+  it('marks the license provisional and release blocked', () => {
+    assert.match(readme, /provisional/i);
+    assert.match(readme, /owner confirmation|blocked/i);
+  });
+  it('contains no badges or images (no fake badges)', () => {
+    assert.ok(!/!\[/.test(readme), 'README must not embed badge images');
+  });
 });
 
 describe('docs — SKILL.md pipeline coverage', () => {
@@ -42,6 +58,186 @@ describe('docs — SKILL.md pipeline coverage', () => {
       assert.ok(skill.includes(stage), `SKILL.md must document ${stage}`);
     });
   }
+});
+
+describe('docs — flows honesty across all guides', () => {
+  const files = [
+    'README.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
+    'docs/installation.md', 'docs/uninstallation.md', 'docs/usage.md',
+    'docs/private-beta.md', 'docs/release-readiness.md',
+  ];
+  for (const file of files) {
+    it(`${file}: every flows.json mention is an absence statement`, () => {
+      const text = read(file);
+      if (!/flows\.json/.test(text)) return; // no mention at all is fine
+      const withoutAbsence = stripAbsence(text);
+      assert.ok(!/flows\.json/.test(withoutAbsence), `${file} must not promise flows.json`);
+    });
+  }
+});
+
+describe('docs — local markdown links resolve', () => {
+  const LINK = /\]\(([^)#\s]+)(#[^)\s]*)?\)/g;
+  const DOC_FILES = [
+    'README.md', 'CONTRIBUTING.md', 'SECURITY.md', 'CHANGELOG.md', 'CODE_OF_CONDUCT.md',
+    'docs/installation.md', 'docs/uninstallation.md', 'docs/usage.md',
+    'docs/private-beta.md', 'docs/release-readiness.md',
+    '.github/pull_request_template.md',
+    'examples/README.md', 'examples/minimal/README.md',
+  ];
+  for (const file of DOC_FILES) {
+    it(`${file}: local link targets exist`, () => {
+      const dir = dirname(join(ROOT, file));
+      for (const m of read(file).matchAll(LINK)) {
+        const target = m[1];
+        if (/^(https?:|mailto:|node:)/i.test(target)) continue;
+        const resolved = join(dir, decodeURI(target));
+        assert.ok(existsSync(resolved), `${file} -> (${target}) resolves to an existing file`);
+      }
+    });
+  }
+});
+
+describe('docs — GitHub project files present', () => {
+  for (const file of [
+    'CONTRIBUTING.md', 'SECURITY.md', 'CHANGELOG.md', 'CODE_OF_CONDUCT.md',
+    '.github/pull_request_template.md', '.github/workflows/ci.yml',
+    '.github/ISSUE_TEMPLATE/bug_report.yml',
+    '.github/ISSUE_TEMPLATE/feature_request.yml',
+    '.github/ISSUE_TEMPLATE/private_beta_feedback.yml',
+    '.github/ISSUE_TEMPLATE/documentation.yml',
+    'docs/installation.md', 'docs/uninstallation.md', 'docs/usage.md',
+    'docs/private-beta.md', 'docs/release-readiness.md',
+  ]) {
+    it(`${file} exists and is non-empty`, () => {
+      assert.ok(existsSync(join(ROOT, file)), `${file} present`);
+      assert.ok(read(file).trim().length > 0, `${file} non-empty`);
+    });
+  }
+});
+
+describe('docs — issue templates sanity', () => {
+  const TPL = '.github/ISSUE_TEMPLATE';
+  it('issue templates are YAML forms (name, description, body; no tabs)', () => {
+    for (const file of ['bug_report.yml', 'feature_request.yml', 'private_beta_feedback.yml', 'documentation.yml']) {
+      const text = read(join(TPL, file));
+      assert.match(text, /^name:/m, `${file} has a name`);
+      assert.match(text, /^description:/m, `${file} has a description`);
+      assert.match(text, /^body:/m, `${file} has a body`);
+      assert.ok(!/\t/.test(text), `${file} contains no tab characters (YAML-safe)`);
+    }
+  });
+  it('bug template asks the required reproduction context', () => {
+    const text = read(join(TPL, 'bug_report.yml'));
+    for (const field of ['CodeAtlas version', 'Node.js version', 'Operating system', 'Exact command used', 'Expected behavior', 'Actual behavior', 'reproducible', 'redacted']) {
+      assert.ok(new RegExp(field, 'i').test(text), `bug template asks: ${field}`);
+    }
+  });
+  it('feature template distinguishes semantic-model/output-schema impact', () => {
+    const text = read(join(TPL, 'feature_request.yml'));
+    assert.match(text, /Semantic model or output schema impact/);
+    assert.match(text, /Current workaround/);
+  });
+  it('private-beta template forbids private submissions and asks anonymized permission', () => {
+    const text = read(join(TPL, 'private_beta_feedback.yml'));
+    for (const field of ['private source code', 'private repository URLs', 'permission to quote', 'Most valuable result', 'Biggest limitation']) {
+      assert.ok(new RegExp(field, 'i').test(text), `private-beta template covers: ${field}`);
+    }
+  });
+  it('documentation template reports location and problem', () => {
+    const text = read(join(TPL, 'documentation.yml'));
+    assert.match(text, /Documentation location/);
+    assert.match(text, /unclear, stale, or missing/);
+  });
+});
+
+describe('docs — installation/uninstallation accuracy', () => {
+  const pkg = JSON.parse(read('package.json'));
+  const install = read('docs/installation.md');
+  const uninstall = read('docs/uninstallation.md');
+  it('installation states the engines requirement', () => {
+    const major = pkg.engines.node.match(/(\d+)/)[1];
+    assert.match(install, new RegExp(`Node\\.js [>=≥]* ?${major}`));
+  });
+  it('installation never claims npm registry availability', () => {
+    assert.match(install, /not published on npm/i);
+    assert.match(install, /do not work|not available/i);
+  });
+  it('installation tarball version references agree with package.json', () => {
+    for (const m of install.matchAll(/codeatlas-([0-9.]+)\.tgz/g)) {
+      assert.equal(m[1], pkg.version, `tarball version ${m[1]} matches package.json ${pkg.version}`);
+    }
+  });
+  it('installation documents verification steps', () => {
+    assert.match(install, /--version/);
+    assert.match(install, /--help/);
+    assert.match(install, /smoke run/i);
+  });
+  it('uninstallation does not claim shell-config modification by the tool', () => {
+    assert.match(uninstall, /never touches shell configuration|never edits those files/i);
+  });
+  it('uninstallation does not claim global npm install support', () => {
+    assert.match(uninstall, /not applicable today/i);
+    assert.match(uninstall, /package is not on npm/i);
+  });
+  it('uninstallation documents that generated output is deleted explicitly', () => {
+    assert.match(uninstall, /remove generated maps|stays until you delete it explicitly/i);
+    assert.match(uninstall, /rm -rf/);
+  });
+});
+
+describe('docs — changelog accuracy', () => {
+  const pkg = JSON.parse(read('package.json'));
+  const changelog = read('CHANGELOG.md');
+  it('documents the current package version', () => {
+    assert.match(changelog, new RegExp(`## ${pkg.version.replace('.', '\\.')} — `));
+  });
+  it('states the private-beta status and license-confirmation blocker', () => {
+    assert.match(changelog, /private beta/i);
+    assert.match(changelog, /provisional/i);
+    assert.match(changelog, /owner confirmation/i);
+  });
+  it('does not describe unreleased work as completed', () => {
+    assert.match(changelog, /Planned \(not started, not completed\)/);
+  });
+});
+
+describe('docs — security accuracy', () => {
+  const pkg = JSON.parse(read('package.json'));
+  const security = read('SECURITY.md');
+  it('documents read/write surfaces and source safety', () => {
+    assert.match(security, /What CodeAtlas reads/);
+    assert.match(security, /What CodeAtlas writes/);
+    assert.match(security, /never modified/);
+    assert.match(security, /--output/);
+  });
+  it('states no telemetry/network/external-model only for this zero-dependency package', () => {
+    assert.deepEqual(pkg.dependencies, undefined, 'no runtime dependencies declared');
+    assert.match(security, /No network access/);
+    assert.match(security, /No telemetry/);
+    assert.match(security, /No external model/);
+  });
+  it('does not invent a security contact address', () => {
+    assert.ok(!/[\w.+-]+@[\w-]+\.[\w.]+/.test(security), 'SECURITY.md must not contain an invented email');
+    assert.match(security, /No private vulnerability-reporting channel is currently configured/);
+  });
+});
+
+describe('docs — CI workflow sanity', () => {
+  const ci = read('.github/workflows/ci.yml');
+  it('runs the test suite on the engines floor without publishing', () => {
+    const pkg = JSON.parse(read('package.json'));
+    const major = pkg.engines.node.match(/(\d+)/)[1];
+    assert.match(ci, new RegExp(`node-version: ["']${major}`));
+    assert.match(ci, /npm test/);
+    assert.ok(!/npm publish/.test(ci), 'CI must not publish');
+    assert.ok(!/secrets\.|GITHUB_TOKEN.*publish/.test(ci), 'CI must not use publish tokens');
+  });
+  it('verifies the CLI and the files whitelist', () => {
+    assert.match(ci, /--help/);
+    assert.match(ci, /--version/);
+    assert.match(ci, /npm pack --dry-run/);
+  });
 });
 
 describe('docs — examples consistency', () => {
