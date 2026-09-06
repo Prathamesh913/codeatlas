@@ -57,6 +57,16 @@ describe('docs — README honesty', () => {
     assert.match(readme, /docs\/concepts\.md/, 'concept detail relocated to docs/concepts.md');
     assert.match(readme, /docs\/output-format\.md/, 'artifact detail relocated to docs/output-format.md');
   });
+  it('opens in plain language (no internal terminology before the value is clear)', () => {
+    const opening = readme.split('\n').slice(0, 15).join('\n');
+    assert.match(opening, /map of what the project does/i, 'first screen explains what CodeAtlas does');
+    assert.ok(!/\bsemantic\b|\bcanonical\b|\bstructural\b|evidence-backed/i.test(opening),
+      'opening must avoid internal terminology');
+  });
+  it('explains practical value with a bug-investigation example', () => {
+    assert.match(readme, /Example: investigating a bug/);
+    assert.match(readme, /helps narrow the search|useful starting point/i);
+  });
 });
 
 describe('docs — SKILL.md pipeline coverage', () => {

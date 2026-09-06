@@ -1,144 +1,175 @@
 # CodeAtlas
 
-**Semantic maps of your codebase — so humans and AI coding agents find the right code faster.**
+**CodeAtlas looks at a software project and creates a map of what the project does,
+where that behavior lives, and how the important parts connect — so developers and AI
+coding agents can find the right code faster when fixing bugs or adding features.**
 
 Private beta · v0.5.0 · not yet on npm
 
-CodeAtlas scans a repository once and builds a persistent, evidence-backed map:
-user-visible **features**, cross-cutting **systems**, the **files** that implement
-them, the **relationships** between them, and readable Markdown documentation — while
-preserving ambiguity instead of inventing answers.
-
 ## The problem
 
-`grep` finds text. Symbol search finds names. Dependency graphs find imports. None of
-them answers the questions you actually ask:
+A typical project has hundreds or thousands of files — but a bug report describes
+behavior, not filenames:
 
-- "Where is the carousel implemented?"
-- "Which files handle authentication?"
-- "What depends on saved posters?"
-- "Where should I investigate this bug?"
-- "Which files implement project creation?"
+> "The saved posters page is empty."
 
-In an unfamiliar codebase, answering any of these means re-deriving the map by hand —
-every time. CodeAtlas derives it once, records its evidence, and admits what it could
-not decide.
+Searching for `poster` returns dozens of hits: components, tests, styles, generated
+code. The relevant behavior usually spans several files, and the data-loading code is
+easy to miss. Without a map, a developer (or an AI coding agent) greps for keywords,
+inspects unrelated components, and follows imports by hand — and can still miss the
+code that matters.
 
-## What it produces
+With CodeAtlas, you can start from the saved-posters feature, see which files belong
+to it, and follow the connection to the data system. It helps narrow the search; it
+does not replace reading, testing, or understanding the code.
 
-A run writes to `<repository>/.codeatlas` (or `--output <directory>`) and never
-modifies your sources:
+## What CodeAtlas does
 
-- **`features.json`** — user-visible capabilities, with names, aliases, files, and evidence
-- **`systems.json`** — cross-cutting responsibilities shared by multiple regions
-- **`files.json`** — the file → entity navigation index
-- **`relationships.json`** — directed edges, each backed by an observed import (never co-location)
-- **`unresolved.json`** — what CodeAtlas could not decide, why, and what would resolve it
-- **`markdown/`** — `INDEX.md` query index, per-feature and per-system pages, `ARCHITECTURE.md`
+- Reads the project (read-only — your source files are never modified).
+- Identifies important parts of the application: things a user can do (features) and
+  shared capabilities used by several of them (systems).
+- Groups related files around that functionality, separating real application
+  behavior from tests, generated files, and incidental text.
+- Records how the important parts connect.
+- Writes everything into one `.codeatlas/` directory: machine-readable data plus
+  readable Markdown documentation.
+- Preserves uncertainty: where the available information is not enough, CodeAtlas
+  says so instead of guessing.
 
-Full artifact reference: [docs/output-format.md](docs/output-format.md).
-Concepts and trust model: [docs/concepts.md](docs/concepts.md).
+## What the result looks like
 
-## Example (real output)
-
-From the bundled `smoke-react-app` fixture ([examples/](examples/)):
-
-```json
-{
-  "id": "feature-board",
-  "name": "Board",
-  "description": "Covers the idea and board part of the interface.",
-  "confidence": "low",
-  "aliases": ["idea board"],
-  "primary_files": ["src/App.tsx"]
-}
+```text
+.codeatlas/
+├── canonical/                  the map, as data (the source of truth)
+│   ├── features.json           the application capabilities CodeAtlas identified
+│   ├── systems.json            shared capabilities used by several features
+│   ├── files.json              relevant source files and their roles
+│   ├── relationships.json      connections between features, systems, and files
+│   ├── unresolved.json         areas CodeAtlas could not confidently decide
+│   └── canonical-report.json   per-run summary counts
+├── markdown/                   the same map, readable
+│   ├── INDEX.md                searchable starting point for exploring the map
+│   ├── features/  systems/     one readable page per feature and system
+│   ├── unresolved.md           the uncertain areas, with reasons
+│   └── ARCHITECTURE.md         whole-map overview
+└── …                           recorded working data from each analysis pass
+                                (evidence/, annotation/, structural/, investigation/,
+                                semantic/, consolidation/ — including
+                                evidence/manifest.json, the collector's record of
+                                what was scanned)
 ```
 
-```json
-{ "source": "feature-board", "target": "feature-form",
-  "relationship_type": "DEPENDS_ON", "confidence": "low" }
+Every claim in the map carries its supporting information, and uncertain areas are
+listed rather than hidden. `flows.json` is part of the data model but is not generated yet.
+
+## Example: investigating a bug
+
+```mermaid
+flowchart TD
+    Q["Bug report: the saved posters page is empty"] --> M["Search the CodeAtlas index"]
+    M --> F["Open the saved-posters feature"]
+    F --> R["Follow the connection to the data system"]
+    R --> S["Read the actual source code"]
+    S --> X["Make and test the fix"]
 ```
 
-`feature-board` depends on `feature-form`, backed by an observed import from
-`src/App.tsx` to `src/components/IdeaForm.tsx`. The `low` confidence is deliberate:
-the map states its uncertainty instead of hiding it. A micro-repo resolves zero
-systems — `[]` is a valid, honest answer.
+Without the map, step 1 is a keyword search over the whole repository. With it, the
+developer or AI agent starts from the feature, its files, and its connections — and
+only then reads the source code that matters.
 
-## Quick start
+## Who it helps
 
-Node.js ≥ 18. Zero runtime dependencies. **Not published on npm** —
-`npm install codeatlas` / `npx codeatlas` **do not work yet**; install from a checkout:
+- Developers joining an unfamiliar project.
+- Developers fixing bugs or adding features.
+- Maintainers documenting a codebase.
+- AI coding agents that need a useful starting point instead of blind exploration.
+- Teams that want a shared map of the application's important behavior.
+
+## How it works
+
+CodeAtlas performs several passes over the project: it collects information about
+files and imports, identifies useful text and application behavior, then builds and
+checks a map of related functionality. A few terms worth knowing:
+
+- **Feature** — something the application lets a user do ("Save Poster").
+- **System** — a shared capability used by multiple features ("Auth").
+- **Relationship** — a recorded connection between important parts, backed by an
+  observed import.
+- **Evidence** — the information that supports why an item was identified.
+- **Ambiguous / Unresolved** — an area where the available information was not
+  sufficient for a confident decision; listed openly instead of guessed.
+
+A map is an aid to investigation, not a substitute for reading source code. Deeper
+detail: [docs/concepts.md](docs/concepts.md) (concepts and trust model) and
+[docs/output-format.md](docs/output-format.md) (artifacts and analysis passes).
+
+## Install and run
+
+Node.js ≥ 18, no other requirements. **Not published on npm** — `npm install
+codeatlas` and `npx codeatlas` **do not work yet**; install from a checkout:
 
 ```bash
 git clone https://github.com/Prathamesh913/codeatlas.git
 cd codeatlas
-node bin/codeatlas.js ./my-app              # writes ./my-app/.codeatlas
-# or redirect everything: node bin/codeatlas.js ./my-app --output ./map
+node bin/codeatlas.js <repository-path>            # writes <repository-path>/.codeatlas
+# or choose another output location:
+node bin/codeatlas.js <repository-path> --output ./map
 ```
 
-Open `my-app/.codeatlas/markdown/INDEX.md` to start browsing. The CLI contract is
-`codeatlas <repository-path> [--output <directory>]` plus `--help` and `--version`
-(the bare `codeatlas` command comes from a tarball install; from a checkout use
-`node bin/codeatlas.js`).
+A successful run prints its progress and a summary, for example (a small React test
+project):
 
-Details: [installation](docs/installation.md) · [usage](docs/usage.md) ·
-[uninstallation](docs/uninstallation.md)
+```text
+codeatlas: done — 2 features, 0 systems, 0 ambiguous, 0 unresolved/demoted
+codeatlas: output written to /tmp/map
+```
 
-## How it helps during an investigation
+`<repository-path>` is the directory of the project to map. The bare `codeatlas`
+command (`codeatlas <repository-path> [--output <directory>]`, plus `--help` and
+`--version`) comes from a tarball install; from a checkout use `node bin/codeatlas.js`.
+See [docs/installation.md](docs/installation.md) and
+[docs/uninstallation.md](docs/uninstallation.md).
 
-1. A user reports: "the add-idea form doesn't submit."
-2. Search the map — the technical term `add` maps to `feature-form ("Form")`.
-3. `features.json` gives the primary files (e.g. `src/components/IdeaForm.tsx`).
-4. `relationships.json` shows `feature-board` DEPENDS_ON `feature-form`, with the
-   cited import edge.
-5. Read those two files — not the whole repository.
-6. Fix and validate.
+## What to expect
 
-AI agents do the same: resolve entities by id, follow relationships to their cited
-import edges, treat `unresolved` as "verify in source", then edit code. See
-[docs/usage.md](docs/usage.md) and [SKILL.md](SKILL.md).
-
-## Status and limitations
-
-- **Private beta.** Validated on two real repositories (ProjectDock, CinePrint);
-  unfamiliar-repository validation is still in progress.
-- Results are evidence-backed but not perfect — check `confidence` and
-  `unresolved.md` before acting. Ambiguous and unresolved entities are preserved on
-  purpose, not hidden.
-- `flows.json` is part of the model but not currently generated (no call-chain
-  evidence yet).
+- **Private beta.** Validated on two real repositories so far; unfamiliar-repository
+  testing is still in progress.
+- Results are useful guidance, not a guaranteed complete understanding. Names and
+  groupings can be imperfect; check the recorded confidence before acting.
+- Some areas may remain ambiguous or unresolved — intentionally, rather than guessed.
 - Strongest on JavaScript/TypeScript and Python; other languages produce sparse maps.
-- The analyzed repository is **never modified**; reruns are deterministic.
-- MIT license is provisional pending owner confirmation — public release is blocked
-  until then. Not on npm; no GitHub release yet.
-- Full status: [docs/release-readiness.md](docs/release-readiness.md).
+- `flows.json` is not currently generated.
+- No npm package and no stable public release yet.
 
-## Documentation
+## Privacy and safety
 
-| | |
-|---|---|
-| [docs/installation.md](docs/installation.md) | install, verify, troubleshooting |
-| [docs/usage.md](docs/usage.md) | reading the map, relationships, agent workflow |
-| [docs/uninstallation.md](docs/uninstallation.md) | removing CodeAtlas and generated output |
-| [docs/concepts.md](docs/concepts.md) | features, systems, evidence, trust model |
-| [docs/output-format.md](docs/output-format.md) | artifacts and pipeline stages |
-| [docs/private-beta.md](docs/private-beta.md) | testing CodeAtlas and giving feedback |
-| [docs/release-readiness.md](docs/release-readiness.md) | completed vs pending vs blocked |
-| [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) | contributing · reporting a vulnerability |
-| [CHANGELOG.md](CHANGELOG.md) · [DECISIONS.md](DECISIONS.md) | version history · decision record |
-| [examples/](examples/) | real generated sample + minimal walkthrough |
+CodeAtlas reads the target repository and writes generated output to `.codeatlas/`
+(or your `--output` directory). Source files are never modified, and there is no
+network access or telemetry. When reporting issues, do not submit private source
+code, secrets, credentials, or sensitive logs — see
+[SECURITY.md](SECURITY.md).
 
-## Contributing and feedback
+## Contributing
 
-- Bug reports and feature requests: the
-  [issue templates](.github/ISSUE_TEMPLATE/bug_report.yml).
-- Private-beta testers: [docs/private-beta.md](docs/private-beta.md) and the
-  [feedback template](.github/ISSUE_TEMPLATE/private_beta_feedback.yml).
-- Please do not submit private source code, secrets, or unredacted logs — see
-  [SECURITY.md](SECURITY.md).
+Contributions and private-beta feedback are welcome — see
+[CONTRIBUTING.md](CONTRIBUTING.md), the
+[issue templates](.github/ISSUE_TEMPLATE/bug_report.yml), and
+[docs/private-beta.md](docs/private-beta.md).
 
-## License
+## License and project status
 
-MIT — see [LICENSE](LICENSE). The license choice is **provisional** and requires
-owner confirmation before public release. Until then, reference the project as
-"CodeAtlas 0.5.0 (private beta)".
+MIT — see [LICENSE](LICENSE). The license choice is **provisional** and still requires
+owner confirmation before public release. Current status, and what is completed vs
+pending vs blocked: [docs/release-readiness.md](docs/release-readiness.md).
+
+## Roadmap
+
+1. Private-beta testing with real users and repositories.
+2. Feedback from unfamiliar repositories.
+3. Improvements based on real usage.
+4. Packaging and release decisions.
+5. Future improvements (flow generation, accuracy) only where feedback names a
+   concrete problem.
+
+More: [CHANGELOG.md](CHANGELOG.md) · [DECISIONS.md](DECISIONS.md) ·
+[examples/](examples/) · [SKILL.md](SKILL.md) (rules for AI agents consuming the map).

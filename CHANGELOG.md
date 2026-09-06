@@ -31,6 +31,11 @@ Documentation and repository preparation (this phase, unreleased):
   (artifacts, pipeline stages); troubleshooting rows moved to the installation
   guide; roadmap moved to `docs/release-readiness.md`. Landing-page conciseness
   pinned by a docs test.
+- README rewritten for a general technical audience: plain-language opening
+  ("creates a map of what the project does, where that behavior lives, and how the
+  important parts connect"), realistic bug-investigation example, honest output-tree
+  description, simple glossary; internal terminology (semantic/canonical/structural)
+  moved behind the practical explanation, with a docs test guarding the opening.
 
 ## 0.5.0 — 2026-09-04### Added
 
