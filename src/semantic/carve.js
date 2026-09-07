@@ -6,6 +6,7 @@
 // D-012: structural boundary != semantic boundary.
 
 import { affinities, tokenize, PERSISTENCE_TOKENS, USER_VERBS } from './tokens.js';
+import { isWeakToken } from './merge-policy.js';
 
 const MIN_DF = 2;
 const MIN_AFFINITY = 0.08;
@@ -192,9 +193,22 @@ export function carveRegions(graph, profiles, df, units, uiTerms = new Map(), na
   };
 
   // Pass 1 — multi-file evidence groups become regions.
+  // A group seeded ONLY by a weak generic token (config, validation,
+  // detail, master, ...) is not a semantic identity: merging on it would
+  // collapse unrelated domains (e.g. every `*config*` file into one
+  // `system-config`). Such groups stay separate — their files return to the
+  // leftover pool where stronger evidence may claim them, or they remain
+  // unassigned/unresolved. This preserves compound identities
+  // (locationTypeConfig, checklistConfigMappings, scoringMaster,
+  // areaCategorySubcategory), which are identified by their full compound
+  // name, never by the weak affix alone.
   for (const [term, files] of [...groups].sort((a, b) => b[1].length - a[1].length || (a[0] < b[0] ? -1 : 1))) {
     const sorted = files.slice().sort();
     if (sorted.length < MIN_REGION_SIZE) continue;
+    if (isWeakToken(term)) {
+      droppedSingletonFiles.push(...sorted);
+      continue;
+    }
     // Widget-noun regions are UI primitive clusters, not capabilities: demote
     // their members to the supporting pool (real features may claim them).
     if (PRIMITIVE_TERMS.has(term)) {
@@ -223,6 +237,11 @@ export function carveRegions(graph, profiles, df, units, uiTerms = new Map(), na
       droppedSingletonFiles.push(f);
       continue;
     }
+    // A lone file whose only identity is a weak generic token (detail,
+    // master, config, validation, ...) is not a meaningful entity without
+    // strong evidence. It may still survive via the own-name fallback
+    // below when the file carries a stronger compound identity.
+    const weakSeed = isWeakToken(term);
     if (isInfraShaped(f)) {
       droppedSingletonFiles.push(f);
       continue;
@@ -252,6 +271,7 @@ export function carveRegions(graph, profiles, df, units, uiTerms = new Map(), na
           (t) =>
             t !== term &&
             !PRIMITIVE_TERMS.has(t) &&
+            !isWeakToken(t) &&
             !(PERSISTENCE_TOKENS.has(t) && !CAPABILITY_TERMS.has(t)) &&
             !identityClaimed(t)
         );
@@ -262,6 +282,13 @@ export function carveRegions(graph, profiles, df, units, uiTerms = new Map(), na
         }
         continue;
       }
+    }
+    // Weak-seeded singletons need UI evidence to stand alone; a generic
+    // filename (detail.ts, master.ts) with no user-visible text is not a
+    // meaningful entity.
+    if (weakSeed && !hasUiEvidence) {
+      droppedSingletonFiles.push(f);
+      continue;
     }
     pushRegion(term, [f], true);
   }

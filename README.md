@@ -130,6 +130,21 @@ command (`codeatlas <repository-path> [--output <directory>]`, plus `--help` and
 See [docs/installation.md](docs/installation.md) and
 [docs/uninstallation.md](docs/uninstallation.md).
 
+## Post-fix evaluation
+
+To check a generated map — counts, reverse-index integrity, router handling,
+suspicious patterns — without touching the analyzed repository:
+
+```bash
+node bin/codeatlas-evaluate.js <repository-path> --output ./eval-my-app
+node bin/codeatlas-evaluate.js <repository-path> --output ./eval-my-app --rerun
+```
+
+Exit `0` = all integrity checks pass, `2` = failures found (reports still
+written), `1` = usage/runtime error. Share back
+`evaluation/evaluation-summary.json` and `evaluation-report.md`. Details:
+[docs/evaluation.md](docs/evaluation.md).
+
 ## What to expect
 
 - **Private beta.** Validated on two real repositories so far; unfamiliar-repository

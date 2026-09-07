@@ -453,24 +453,10 @@ export function canonicalize(inputs, options = {}) {
   }
   const relsOut = [...byKey.values()].sort((a, b) => (relKey(a) < relKey(b) ? -1 : 1));
 
-  // --- 6. Canonical file index ----------------------------------------------------
-  const filesOut = inventoryPaths.map((p) => {
-    const cls = relevanceByFile.get(p)?.relevance_class || 'application';
-    const feats = outFeatures.filter((f) => [...f.primary_files, ...(f.supporting_files || [])].includes(p)).map((f) => f.id);
-    const syss = outSystems.filter((f) => [...f.primary_files, ...(f.supporting_files || [])].includes(p)).map((f) => f.id);
-    const owner = [...outFeatures, ...outSystems].find((f) => f.primary_files.includes(p));
-    const ext = p.split('.').pop() || '';
-    return {
-      path: p,
-      type: cls !== 'application' ? cls : (/\.(tsx|jsx)$/.test(p) ? 'component' : /\.(ts|js|mjs|cjs)$/.test(p) ? 'module' : /\.py$/.test(p) ? 'module' : 'other'),
-      language: relevanceByFile.get(p)?.language ?? null,
-      relevance_class: cls,
-      technical_role: owner ? `Implementation file of ${owner.id}.` : `${cls} file; not mapped to a canonical entity.`,
-      semantic_role: owner ? (owner.description || '').slice(0, 200) : 'Not mapped to a canonical entity.',
-      features: feats,
-      systems: syss,
-    };
-  }).sort((a, b) => (a.path < b.path ? -1 : 1));
+  // --- 6. Canonical file index (reverse projection) -------------------------------
+  // Authority: entity membership is authoritative; files.json is derived.
+  const filesOut = buildReverseFileIndex({ features: outFeatures, systems: outSystems, inventoryPaths, relevanceByFile });
+  const integrity = validateCanonicalIntegrity({ features: outFeatures, systems: outSystems, files: filesOut });
 
   // --- 7. Report ---------------------------------------------------------------------
   const report = {
@@ -504,8 +490,10 @@ export function canonicalize(inputs, options = {}) {
       reclassified_out: unresolvedOut.filter((u) => u.status === 'reclassified_shell_context').length,
       relationships_out: relsOut.length,
       relationships_dropped: droppedRels.length,
+      reverse_index_errors: integrity.errors.length,
     },
     voi: { budget, questions: voiLog },
+    reverse_index_integrity: integrity,
     naming: [...outFeatures, ...outSystems].map((e) => ({
       id: e.id, name: e.name, tier: e.provenance.naming_evidence.tier, basis: e.provenance.naming_evidence.basis,
       changed: e.provenance.naming_evidence.changed, previous_name: e.provenance.naming_evidence.previous_name,
@@ -515,6 +503,115 @@ export function canonicalize(inputs, options = {}) {
 
   return { features: outFeatures, systems: outSystems, unresolved: unresolvedOut, relationships: relsOut, files: filesOut, report };
 }
+
+// Canonical file index — reverse projection of entity membership.
+//
+// Authority rule: canonical entity membership (primary_files /
+// supporting_files on features/systems) is the authority; files.json is a
+// deterministic REVERSE projection of it. A file lists an entity ID only
+// when that entity explicitly references the file. No inference from
+// filename similarity, directory proximity, or import adjacency. Files with
+// no supported membership keep empty arrays. Ordering is deterministic
+// (sorted, deduplicated); every referenced ID must exist.
+export function buildReverseFileIndex({ features, systems, inventoryPaths, relevanceByFile }) {
+const validIds = new Set([...features, ...systems].map((e) => e.id));
+const kindOf = new Map([
+  ...features.map((e) => [e.id, 'feature']),
+  ...systems.map((e) => [e.id, 'system']),
+]);
+// Forward membership: file -> entity ids, from explicit entity records only.
+const featsByFile = new Map();
+const syssByFile = new Map();
+for (const f of features) {
+  for (const p of [...(f.primary_files || []), ...((f.supporting_files || []))]) {
+    if (!validIds.has(f.id)) continue;
+    if (!featsByFile.has(p)) featsByFile.set(p, new Set());
+    featsByFile.get(p).add(f.id);
+  }
+}
+for (const s of systems) {
+  for (const p of [...(s.primary_files || []), ...((s.supporting_files || []))]) {
+    if (!validIds.has(s.id)) continue;
+    if (!syssByFile.has(p)) syssByFile.set(p, new Set());
+    syssByFile.get(p).add(s.id);
+  }
+}
+void kindOf;
+return inventoryPaths.map((p) => {
+  const cls = relevanceByFile.get(p)?.relevance_class || 'application';
+  const feats = [...(featsByFile.get(p) || [])].sort();
+  const syss = [...(syssByFile.get(p) || [])].sort();
+  const owner = [...features, ...systems].find((f) => (f.primary_files || []).includes(p));
+  const ext = p.split('.').pop() || '';
+  return {
+    path: p,
+    type: cls !== 'application' ? cls : (/\.(tsx|jsx)$/.test(p) ? 'component' : /\.(ts|js|mjs|cjs)$/.test(p) ? 'module' : /\.py$/.test(p) ? 'module' : 'other'),
+    language: relevanceByFile.get(p)?.language ?? null,
+    relevance_class: cls,
+    technical_role: owner ? `Implementation file of ${owner.id}.` : `${cls} file; not mapped to a canonical entity.`,
+    semantic_role: owner ? (owner.description || '').slice(0, 200) : 'Not mapped to a canonical entity.',
+    features: feats,
+    systems: syss,
+  };
+}).sort((a, b) => (a.path < b.path ? -1 : 1));
+}
+
+/**
+ * Validate bidirectional integrity between canonical entities and the file
+ * index. Reports problems clearly; never silently repairs.
+ *
+ * Checks: entity references to missing files, file references to missing
+ * entities, mismatched feature/system membership, duplicate memberships,
+ * nondeterministic (unsorted) ordering.
+ *
+ * @returns {{ ok: boolean, errors: string[] }}
+ */
+export function validateCanonicalIntegrity({ features, systems, files }) {
+const errors = [];
+const fileByPath = new Map((files || []).map((f) => [f.path, f]));
+const kindOf = new Map([
+  ...features.map((e) => [e.id, 'feature']),
+  ...systems.map((e) => [e.id, 'system']),
+]);
+const sorted = (arr) => [...arr].sort();
+for (const e of [...features, ...systems]) {
+  const kind = kindOf.get(e.id);
+  for (const p of [...(e.primary_files || []), ...((e.supporting_files || []))]) {
+    const rec = fileByPath.get(p);
+    if (!rec) {
+      errors.push(`entity ${e.id} references missing file record: ${p}`);
+      continue;
+    }
+    const listed = kind === 'feature' ? (rec.features || []) : (rec.systems || []);
+    if (!listed.includes(e.id)) {
+      errors.push(`mismatched membership: entity ${e.id} lists ${p} but files.json does not list ${e.id} under ${kind === 'feature' ? 'features' : 'systems'}`);
+    }
+    // Cross-kind mismatch: a feature id must never appear under systems.
+    const other = kind === 'feature' ? (rec.systems || []) : (rec.features || []);
+    if (other.includes(e.id)) {
+      errors.push(`mismatched feature/system membership: ${e.id} (${kind}) appears under the wrong key in ${p}`);
+    }
+  }
+  for (const key of ['primary_files', 'supporting_files']) {
+    const arr = e[key] || [];
+    if (new Set(arr).size !== arr.length) errors.push(`duplicate memberships in ${e.id}.${key}`);
+    if (JSON.stringify(arr) !== JSON.stringify(sorted(arr))) errors.push(`nondeterministic ordering in ${e.id}.${key} (not sorted)`);
+  }
+}
+for (const f of files || []) {
+  for (const [key, expectKind] of [['features', 'feature'], ['systems', 'system']]) {
+    const arr = f[key] || [];
+    if (new Set(arr).size !== arr.length) errors.push(`duplicate memberships in files.json ${f.path}.${key}`);
+    if (JSON.stringify(arr) !== JSON.stringify(sorted(arr))) errors.push(`nondeterministic ordering in files.json ${f.path}.${key} (not sorted)`);
+    for (const id of arr) {
+      if (!kindOf.has(id)) errors.push(`file ${f.path} references missing entity: ${id}`);
+      else if (kindOf.get(id) !== expectKind) errors.push(`mismatched feature/system membership: file ${f.path}.${key} lists ${id} which is a ${kindOf.get(id)}`);
+    }
+  }
+}
+return { ok: errors.length === 0, errors: errors.slice().sort() };
+}
+
 
 function titleCaseSafe(term) {
   return String(term)

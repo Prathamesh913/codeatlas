@@ -19,6 +19,8 @@ node_modules/
 
 # Generated CodeAtlas output (belongs to analyzed repos, never to this repo)
 .codeatlas/
+# Portable evaluator output directories (user-chosen --output locations)
+eval-*/
 
 # Logs and local-only files
 *.log

@@ -35,6 +35,7 @@
   ],
   "scripts": {
     "scan": "node bin/codeatlas.js",
+    "evaluate": "node bin/codeatlas-evaluate.js",
     "collect": "node src/collect.js",
     "phase4a": "node src/structural/cli.js",
     "test": "node --test tests/unit/*.test.js tests/fixtures/*.test.js tests/structural/*.test.js tests/investigate/*.test.js tests/semantic/*.test.js tests/consolidation/*.test.js tests/canonical/*.test.js tests/projection/*.test.js tests/cli/*.test.js tests/docs/*.test.js",
